@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { authApi } from '../services/api';
-import { Compass, User, Lock, Mail, Sparkles, AlertCircle, ArrowRight } from 'lucide-react';
+import { User, Lock, Mail, Phone, MapPin, Globe, Sparkles, AlertCircle, ArrowRight, Camera } from 'lucide-react';
 
 interface AuthPageProps {
   onLoginSuccess: (user: any, token: string) => void;
@@ -19,11 +19,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
     username_or_email: '',
     first_name: '',
     last_name: '',
+    phone_number: '',
+    photo_url: '',
     city: '',
     country: '',
+    additional_info: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setFieldErrors({ ...fieldErrors, [e.target.name]: '' });
     setGeneralError('');
@@ -138,35 +141,41 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">
-        <div className="p-8 text-center bg-slate-50 border-b border-slate-100">
-          <div className="inline-flex p-3 rounded-2xl bg-blue-50 text-blue-600 mb-3">
-            <Compass className="w-7 h-7" />
+    <div className="min-h-screen bg-slate-100/60 flex items-center justify-center p-4">
+      <div className={`w-full ${isLogin ? 'max-w-md' : 'max-w-xl'} bg-white border border-slate-200 rounded-3xl shadow-xl transition-all duration-300 overflow-hidden`}>
+        
+        {/* Top Header & Demo Login Bar */}
+        <div className="p-6 text-center bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+          <div className="text-left">
+            <h1 className="text-lg font-bold text-slate-900 tracking-tight">GlobeTrotter</h1>
+            <p className="text-[11px] text-slate-500 font-medium">Travel Planning Platform</p>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">GlobeTrotter</h1>
-          <p className="text-xs text-slate-500 mt-1 font-medium">Personalized Travel Planning Platform</p>
-
-          <div className="mt-4">
-            <button
-              onClick={handleDemoLogin}
-              disabled={loading}
-              className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 transition"
-            >
-              <Sparkles className="w-4 h-4 text-blue-400" />
-              <span>Instant 1-Click Demo Login</span>
-            </button>
-          </div>
+          <button
+            onClick={handleDemoLogin}
+            disabled={loading}
+            className="py-2 px-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition active:scale-[0.98]"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>1-Click Demo Login</span>
+          </button>
         </div>
 
-        <div className="p-8 space-y-5">
-          <div className="text-center">
-            <h2 className="text-lg font-bold text-slate-900">
-              {isLogin ? 'Sign in to your account' : 'Create a new account'}
+        <div className="p-8 space-y-6">
+          {/* Wireframe Circular Photo Placeholder */}
+          <div className="flex flex-col items-center justify-center space-y-2">
+            <div className="w-20 h-20 rounded-full bg-slate-100 border-2 border-slate-300 flex flex-col items-center justify-center text-slate-400 overflow-hidden relative shadow-xs">
+              {formData.photo_url ? (
+                <img src={formData.photo_url} alt="Photo" className="w-full h-full object-cover" />
+              ) : (
+                <>
+                  <Camera className="w-6 h-6 text-slate-400 mb-0.5" />
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400">Photo</span>
+                </>
+              )}
+            </div>
+            <h2 className="text-base font-bold text-slate-900">
+              {isLogin ? 'Login Screen (Screen 1)' : 'Registration Screen (Screen 2)'}
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
-              {isLogin ? 'Enter your credentials to continue.' : 'Fill in your details to get started.'}
-            </p>
           </div>
 
           {generalError && (
@@ -177,16 +186,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
           )}
 
           {isLogin ? (
+            /* Screen 1: Login Form */
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Username or Email</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Username</label>
                 <div className="relative">
-                  <User className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+                  <User className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
                   <input
                     type="text"
                     name="username_or_email"
                     required
-                    placeholder="demo_traveler or demo@globetrotter.com"
+                    placeholder="Enter Username"
                     value={formData.username_or_email}
                     onChange={handleChange}
                     className={`w-full bg-slate-50 border ${
@@ -202,12 +212,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Password</label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+                  <Lock className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
                   <input
                     type="password"
                     name="password"
                     required
-                    placeholder="Enter password"
+                    placeholder="Enter Password"
                     value={formData.password}
                     onChange={handleChange}
                     className={`w-full bg-slate-50 border ${
@@ -220,14 +230,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                 )}
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-xs flex items-center justify-center space-x-1 transition"
-              >
-                <span>{loading ? 'Signing in...' : 'Sign In'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-xs flex items-center justify-center space-x-1 shadow-sm transition active:scale-[0.98]"
+                >
+                  <span>{loading ? 'Logging in...' : 'Login Button'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
 
               <div className="text-center pt-2">
                 <button
@@ -235,128 +247,168 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                   onClick={() => { setIsLogin(false); setGeneralError(''); setFieldErrors({}); }}
                   className="text-xs text-blue-600 hover:underline font-semibold"
                 >
-                  Don't have an account? Sign up
+                  Don't have an account? Register Users
                 </button>
               </div>
             </form>
           ) : (
-            <form onSubmit={handleRegisterSubmit} className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
+            /* Screen 2: Registration Form (Matching Wireframe Grid) */
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
+              <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">First Name</label>
+                    <input
+                      type="text"
+                      name="first_name"
+                      placeholder="First Name"
+                      value={formData.first_name}
+                      onChange={handleChange}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name</label>
+                    <input
+                      type="text"
+                      name="last_name"
+                      placeholder="Last Name"
+                      value={formData.last_name}
+                      onChange={handleChange}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address *</label>
+                    <div className="relative">
+                      <Mail className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                      <input
+                        type="email"
+                        name="email"
+                        required
+                        placeholder="Email Address"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className={`w-full bg-white border ${
+                          fieldErrors.email ? 'border-rose-400' : 'border-slate-200'
+                        } rounded-xl pl-8 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500`}
+                      />
+                    </div>
+                    {fieldErrors.email && (
+                      <p className="mt-1 text-[11px] text-rose-500 font-medium">{fieldErrors.email}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
+                    <div className="relative">
+                      <Phone className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                      <input
+                        type="text"
+                        name="phone_number"
+                        placeholder="Phone Number"
+                        value={formData.phone_number}
+                        onChange={handleChange}
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">City</label>
+                    <div className="relative">
+                      <MapPin className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                      <input
+                        type="text"
+                        name="city"
+                        placeholder="City"
+                        value={formData.city}
+                        onChange={handleChange}
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Country</label>
+                    <div className="relative">
+                      <Globe className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                      <input
+                        type="text"
+                        name="country"
+                        placeholder="Country"
+                        value={formData.country}
+                        onChange={handleChange}
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">First Name</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Username *</label>
                   <input
                     type="text"
-                    name="first_name"
-                    placeholder="Meet"
-                    value={formData.first_name}
-                    onChange={handleChange}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name</label>
-                  <input
-                    type="text"
-                    name="last_name"
-                    placeholder="Kotecha"
-                    value={formData.last_name}
-                    onChange={handleChange}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Username *</label>
-                <input
-                  type="text"
-                  name="username"
-                  required
-                  placeholder="meetkotecha"
-                  value={formData.username}
-                  onChange={handleChange}
-                  className={`w-full bg-slate-50 border ${
-                    fieldErrors.username ? 'border-rose-400' : 'border-slate-200'
-                  } rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500`}
-                />
-                {fieldErrors.username && (
-                  <p className="mt-1 text-[11px] text-rose-500 font-medium">{fieldErrors.username}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address *</label>
-                <div className="relative">
-                  <Mail className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
-                  <input
-                    type="email"
-                    name="email"
+                    name="username"
                     required
-                    placeholder="meet@example.com"
-                    value={formData.email}
+                    placeholder="Choose Username"
+                    value={formData.username}
                     onChange={handleChange}
-                    className={`w-full bg-slate-50 border ${
-                      fieldErrors.email ? 'border-rose-400' : 'border-slate-200'
-                    } rounded-xl pl-8 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500`}
+                    className={`w-full bg-white border ${
+                      fieldErrors.username ? 'border-rose-400' : 'border-slate-200'
+                    } rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500`}
                   />
+                  {fieldErrors.username && (
+                    <p className="mt-1 text-[11px] text-rose-500 font-medium">{fieldErrors.username}</p>
+                  )}
                 </div>
-                {fieldErrors.email && (
-                  <p className="mt-1 text-[11px] text-rose-500 font-medium">{fieldErrors.email}</p>
-                )}
-              </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Password * (Requires uppercase, number, & special char @, $, #)
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  required
-                  placeholder="e.g. Meet123@"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={`w-full bg-slate-50 border ${
-                    fieldErrors.password ? 'border-rose-400' : 'border-slate-200'
-                  } rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500`}
-                />
-                {fieldErrors.password && (
-                  <p className="mt-1 text-[11px] text-rose-500 font-medium">{fieldErrors.password}</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">City</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Password * (Min 6 chars, uppercase, number, & special char @, $, #)
+                  </label>
                   <input
-                    type="text"
-                    name="city"
-                    placeholder="Tokyo"
-                    value={formData.city}
+                    type="password"
+                    name="password"
+                    required
+                    placeholder="Enter Password"
+                    value={formData.password}
                     onChange={handleChange}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                    className={`w-full bg-white border ${
+                      fieldErrors.password ? 'border-rose-400' : 'border-slate-200'
+                    } rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500`}
                   />
+                  {fieldErrors.password && (
+                    <p className="mt-1 text-[11px] text-rose-500 font-medium">{fieldErrors.password}</p>
+                  )}
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Country</label>
-                  <input
-                    type="text"
-                    name="country"
-                    placeholder="Japan"
-                    value={formData.country}
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Additional Information ....</label>
+                  <textarea
+                    name="additional_info"
+                    rows={3}
+                    placeholder="Additional Information ...."
+                    value={formData.additional_info}
                     onChange={handleChange}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 resize-none"
                   />
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-xs transition"
-              >
-                {loading ? 'Registering...' : 'Create Account'}
-              </button>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-xs shadow-sm transition active:scale-[0.98]"
+                >
+                  {loading ? 'Registering...' : 'Register Users'}
+                </button>
+              </div>
 
               <div className="text-center pt-2">
                 <button
@@ -364,7 +416,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                   onClick={() => { setIsLogin(true); setGeneralError(''); setFieldErrors({}); }}
                   className="text-xs text-blue-600 hover:underline font-semibold"
                 >
-                  Already have an account? Sign in
+                  Already have an account? Login Screen
                 </button>
               </div>
             </form>
