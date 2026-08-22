@@ -11,6 +11,9 @@ class TripActivityCreate(BaseModel):
     notes: Optional[str] = None
     order_index: Optional[int] = None
 
+# Alias for TripActivityAssignment
+TripActivityAssignment = TripActivityCreate
+
 class TripActivityUpdate(BaseModel):
     scheduled_date: Optional[date] = None
     cost_override: Optional[float] = Field(None, ge=0.0)
@@ -20,14 +23,14 @@ class TripActivityUpdate(BaseModel):
 class TripActivityResponse(BaseModel):
     id: int
     trip_stop_id: int
-    activity_id: int
+    activity_id: Optional[int] = None
     order_index: int
     scheduled_date: Optional[date] = None
     cost_override: Optional[float] = None
     effective_cost: float
     notes: Optional[str] = None
     created_at: datetime
-    activity: ActivityResponse
+    activity: Optional[ActivityResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -47,13 +50,13 @@ class TripStopUpdate(BaseModel):
 class TripStopResponse(BaseModel):
     id: int
     trip_id: int
-    city_id: int
+    city_id: Optional[int] = None
     stop_order: int
     arrival_date: Optional[date] = None
     departure_date: Optional[date] = None
     stay_cost: float
     created_at: datetime
-    city: CityResponse
+    city: Optional[CityResponse] = None
     activities: List[TripActivityResponse] = []
 
     model_config = ConfigDict(from_attributes=True)

@@ -17,3 +17,11 @@ class TripActivity(Base):
 
     trip_stop = relationship("TripStop", back_populates="activities")
     activity = relationship("Activity")
+
+    @property
+    def effective_cost(self) -> float:
+        if self.cost_override is not None:
+            return float(self.cost_override)
+        if self.activity and self.activity.estimated_cost is not None:
+            return float(self.activity.estimated_cost)
+        return 0.0
