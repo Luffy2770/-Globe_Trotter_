@@ -44,7 +44,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const renderTripCard = (trip: any) => (
     <div
       key={trip.id}
-      className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs hover:shadow-lg transition duration-250 flex flex-col justify-between"
+      className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between"
     >
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -97,7 +97,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </button>
         <button
           onClick={() => onSelectTripForBudget(trip.id)}
-          className="py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/80 text-xs font-semibold rounded-2xl transition"
+          className="py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 text-xs font-semibold rounded-2xl transition"
         >
           Budget
         </button>
@@ -108,11 +108,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
       {dashboardData?.banner && (
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-xl">
+        <div className="relative rounded-3xl overflow-hidden bg-slate-900 text-white shadow-xl">
           <img
             src={dashboardData.banner.image_url}
             alt="Hero Banner"
-            className="w-full h-56 object-cover object-center opacity-30 mix-blend-overlay"
+            className="w-full h-56 object-cover object-center opacity-30"
           />
           <div className="absolute inset-0 p-8 flex flex-col justify-center max-w-xl space-y-2">
             <span className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-[11px] font-bold rounded-full w-fit">
@@ -124,7 +124,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <p className="text-xs text-slate-300 font-medium leading-relaxed">{dashboardData.banner.subtitle}</p>
             <button
               onClick={onOpenCreateModal}
-              className="w-fit mt-3 py-2.5 px-5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-2xl flex items-center space-x-2 shadow-md transition active:scale-[0.98]"
+              className="w-fit mt-3 py-2.5 px-5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-2xl flex items-center space-x-2 shadow-md transition"
             >
               <PlusCircle className="w-4 h-4" />
               <span>+ Plan a New Trip</span>
@@ -143,7 +143,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             {dashboardData.top_regional_selections.map((city: any) => (
               <div
                 key={city.id}
-                className="bg-white border border-slate-200/80 rounded-2xl p-3 shadow-xs hover:shadow-md transition cursor-pointer group"
+                className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm hover:shadow-md transition cursor-pointer group"
               >
                 <img
                   src={city.image_url}
@@ -158,7 +158,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       )}
 
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
           <input
@@ -210,7 +210,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   {tripsGrouped.ongoing.map(renderTripCard)}
                 </div>
               ) : (
-                <div className="bg-white border border-slate-200/60 rounded-2xl p-4 text-xs text-slate-400 italic">
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 text-xs text-slate-400 italic">
                   No active ongoing trips.
                 </div>
               )}
@@ -228,7 +228,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   {tripsGrouped.upcoming.map(renderTripCard)}
                 </div>
               ) : (
-                <div className="bg-white border border-slate-200/60 rounded-2xl p-4 text-xs text-slate-400 italic">
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 text-xs text-slate-400 italic">
                   No upcoming trips.
                 </div>
               )}
@@ -246,7 +246,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   {tripsGrouped.completed.map(renderTripCard)}
                 </div>
               ) : (
-                <div className="bg-white border border-slate-200/60 rounded-2xl p-4 text-xs text-slate-400 italic">
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 text-xs text-slate-400 italic">
                   No past completed trips.
                 </div>
               )}
