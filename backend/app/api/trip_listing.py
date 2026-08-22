@@ -19,7 +19,7 @@ router = APIRouter(prefix="/trips-listing", tags=["User Trip Listing"])
 
 def determine_trip_status(start_date: Optional[date], end_date: Optional[date]) -> str:
     if not start_date or not end_date:
-        return "draft"
+        return "upcoming"
     today = date.today()
     if today < start_date:
         return "upcoming"
@@ -32,7 +32,7 @@ def build_trip_overview_card_eager(trip: Trip) -> TripOverviewCard:
     stops = trip.stops or []
     stops_count = len(stops)
     
-    stay_sum = sum(s.stay_cost for s in stops)
+    stay_sum = sum(s.stay_cost for s in stops if s.stay_cost)
     act_sum = 0.0
     for s in stops:
         for ta in (s.activities or []):
@@ -76,7 +76,6 @@ def get_user_trip_listing(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Eager loading with selectinload to solve N+1 query performance bottleneck completely
     query = db.query(Trip).options(
         selectinload(Trip.stops).selectinload(TripStop.activities).selectinload(TripActivity.activity)
     ).filter(Trip.user_id == current_user.id)
@@ -105,37 +104,30 @@ def get_user_trip_listing(
     trips = query.all()
     overview_cards = [build_trip_overview_card_eager(t) for t in trips]
 
+    if not group_by_status:
+        return FlatTripsListingResponse(
+            total=len(overview_cards),
+            results=overview_cards
+        )
+
+    ongoing = [c for c in overview_cards if c.status == "ongoing"]
+    upcoming = [c for c in overview_cards if c.status in ("upcoming", "draft")]
+    completed = [c for c in overview_cards if c.status == "completed"]
+
     if status_filter:
-        overview_cards = [c for c in overview_cards if c.status.lower() == status_filter.lower()]
+        sf = status_filter.lower()
+        if sf == "ongoing":
+            upcoming = []
+            completed = []
+        elif sf in ("upcoming", "draft"):
+            ongoing = []
+            completed = []
+        elif sf == "completed":
+            ongoing = []
+            upcoming = []
 
-    if group_by_status:
-        grouped = GroupedTripsResponse()
-        for card in overview_cards:
-            if card.status == "ongoing":
-                grouped.ongoing.append(card)
-            elif card.status == "upcoming":
-                grouped.upcoming.append(card)
-            elif card.status == "completed":
-                grouped.completed.append(card)
-            else:
-                grouped.draft.append(card)
-        return grouped
-
-    return FlatTripsListingResponse(
-        total=len(overview_cards),
-        trips=overview_cards
+    return GroupedTripsResponse(
+        ongoing=ongoing,
+        upcoming=upcoming,
+        completed=completed
     )
-
-@router.get("/{trip_id}/overview", response_model=TripOverviewCard)
-def get_single_trip_overview(
-    trip_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    trip = db.query(Trip).options(
-        selectinload(Trip.stops).selectinload(TripStop.activities).selectinload(TripActivity.activity)
-    ).filter(Trip.id == trip_id, Trip.user_id == current_user.id).first()
-    
-    if not trip:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
-    return build_trip_overview_card_eager(trip)

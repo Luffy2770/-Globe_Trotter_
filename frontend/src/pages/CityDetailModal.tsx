@@ -32,8 +32,8 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
   const avgDailyCost = Math.round((city.cost_index || 2.0) * 75);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-950/75 backdrop-blur-md animate-fade-in overflow-y-auto font-sans">
-      <div className="bg-white border border-stone-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative my-auto overflow-hidden">
+    <div className="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 sm:p-6 bg-stone-950/75 backdrop-blur-md overflow-hidden font-sans">
+      <div className="bg-white border border-stone-200 rounded-3xl max-w-3xl w-full max-h-[88vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl relative my-auto scrollbar-thin">
         {/* Single Top-Right Close Button */}
         <button
           onClick={onClose}
@@ -73,7 +73,7 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Rich Travel Metrics Bar (Avg Cost, Best Season, Rating) */}
+        {/* Rich Travel Metrics Bar */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3 text-center space-y-1">
             <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block flex items-center justify-center">
@@ -121,7 +121,7 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
               Loading recommended places...
             </div>
           ) : activities.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-52 overflow-y-auto pr-1 scrollbar-thin">
               {activities.map((act) => (
                 <div
                   key={act.id}
@@ -147,7 +147,7 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
           )}
         </div>
 
-        {/* Bottom CTA Action Bar (Single Action Button: Plan a Trip to City) */}
+        {/* Bottom CTA Action Bar */}
         <div className="pt-4 border-t border-stone-100 flex justify-end">
           <button
             type="button"

@@ -115,8 +115,8 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
   const avgDailyCost = selectedCityObj ? Math.round(selectedCityObj.cost_index * 75) : 150;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/70 backdrop-blur-md animate-fade-in overflow-y-auto font-sans">
-      <div className="bg-white border border-stone-200 rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative my-auto">
+    <div className="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 sm:p-6 bg-stone-950/75 backdrop-blur-md overflow-hidden font-sans">
+      <div className="bg-white border border-stone-200 rounded-3xl max-w-2xl w-full max-h-[88vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl relative my-auto scrollbar-thin">
         <button
           onClick={onClose}
           className="absolute right-6 top-6 p-2 text-stone-400 hover:text-stone-700 rounded-full hover:bg-stone-100 transition"
