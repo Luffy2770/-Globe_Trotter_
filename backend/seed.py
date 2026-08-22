@@ -6,7 +6,7 @@ from app.models.activity import Activity
 from app.models.trip_stop import TripStop
 from app.models.trip_activity import TripActivity
 from app.core.security import get_password_hash
-from datetime import date
+from datetime import date, timedelta
 
 Base.metadata.create_all(bind=engine)
 
@@ -62,8 +62,7 @@ def seed_database():
         activities_data = [
             {"id": 1, "city_id": 1, "name": "Eiffel Tower Summit & Seine Cruise", "category": "Sightseeing", "estimated_cost": 65.0, "duration_minutes": 180, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400"},
             {"id": 2, "city_id": 1, "name": "Louvre Museum Priority Entry", "category": "Culture", "estimated_cost": 40.0, "duration_minutes": 180, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400"},
-            {"id": 3, "city_id": 2, "name": "Senso-ji Temple & Asakusa Walk", "category": "Culture", "estimated_cost": 25.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400"},
-            {"id": 4, "city_id": 2, "name": "Tsukiji Food Tasting", "category": "Food", "estimated_cost": 45.0, "duration_minutes": 90, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=400"}
+            {"id": 3, "city_id": 2, "name": "Senso-ji Temple & Asakusa Walk", "category": "Culture", "estimated_cost": 25.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400"}
         ]
 
         for act in activities_data:
@@ -87,30 +86,65 @@ def seed_database():
             db.add(demo_user)
             db.flush()
 
-        sample_trip1 = db.query(Trip).filter(Trip.user_id == demo_user.id).first()
-        if not sample_trip1:
-            sample_trip1 = Trip(
+        today = date.today()
+
+        t_upcoming = db.query(Trip).filter(Trip.user_id == demo_user.id, Trip.title == "European Summer Gateway 2026").first()
+        if not t_upcoming:
+            t_upcoming = Trip(
                 user_id=demo_user.id,
                 title="European Summer Gateway 2026",
                 description="Multi-city tour covering Paris and Rome.",
                 cover_image_url="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800",
-                start_date=date(2026, 7, 1),
-                end_date=date(2026, 7, 14),
+                start_date=today + timedelta(days=30),
+                end_date=today + timedelta(days=44),
                 total_budget=3500.0,
                 city_id=1,
                 city_name="Paris"
             )
-            db.add(sample_trip1)
+            db.add(t_upcoming)
             db.flush()
 
-        stop1 = db.query(TripStop).filter(TripStop.trip_id == sample_trip1.id, TripStop.stop_order == 1).first()
+        t_ongoing = db.query(Trip).filter(Trip.user_id == demo_user.id, Trip.title == "Asian Cultural Expedition").first()
+        if not t_ongoing:
+            t_ongoing = Trip(
+                user_id=demo_user.id,
+                title="Asian Cultural Expedition",
+                description="Active travel exploration in Tokyo.",
+                cover_image_url="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800",
+                start_date=today - timedelta(days=2),
+                end_date=today + timedelta(days=5),
+                total_budget=2800.0,
+                city_id=2,
+                city_name="Tokyo"
+            )
+            db.add(t_ongoing)
+            db.flush()
+
+        t_completed = db.query(Trip).filter(Trip.user_id == demo_user.id, Trip.title == "Italian Renaissance Discovery").first()
+        if not t_completed:
+            t_completed = Trip(
+                user_id=demo_user.id,
+                title="Italian Renaissance Discovery",
+                description="Completed vacation exploring Rome and Florence.",
+                cover_image_url="https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800",
+                start_date=today - timedelta(days=60),
+                end_date=today - timedelta(days=50),
+                total_budget=2200.0,
+                city_id=3,
+                city_name="Rome"
+            )
+            db.add(t_completed)
+            db.flush()
+
+        # Seed stops for European Summer Gateway 2026
+        stop1 = db.query(TripStop).filter(TripStop.trip_id == t_upcoming.id, TripStop.city_id == 1).first()
         if not stop1:
             stop1 = TripStop(
-                trip_id=sample_trip1.id,
+                trip_id=t_upcoming.id,
                 city_id=1,
                 stop_order=1,
-                arrival_date=date(2026, 7, 1),
-                departure_date=date(2026, 7, 7),
+                arrival_date=t_upcoming.start_date,
+                departure_date=t_upcoming.start_date + timedelta(days=6),
                 stay_cost=1200.0
             )
             db.add(stop1)
@@ -120,28 +154,20 @@ def seed_database():
                 trip_stop_id=stop1.id,
                 activity_id=1,
                 order_index=1,
-                scheduled_date=date(2026, 7, 2),
+                scheduled_date=stop1.arrival_date + timedelta(days=1),
                 cost_override=65.0,
                 notes="Sunset ticket included."
             )
-            ta2 = TripActivity(
-                trip_stop_id=stop1.id,
-                activity_id=2,
-                order_index=2,
-                scheduled_date=date(2026, 7, 3),
-                notes="Guided highlights tour."
-            )
             db.add(ta1)
-            db.add(ta2)
 
-        stop2 = db.query(TripStop).filter(TripStop.trip_id == sample_trip1.id, TripStop.stop_order == 2).first()
+        stop2 = db.query(TripStop).filter(TripStop.trip_id == t_upcoming.id, TripStop.city_id == 3).first()
         if not stop2:
             stop2 = TripStop(
-                trip_id=sample_trip1.id,
+                trip_id=t_upcoming.id,
                 city_id=3,
                 stop_order=2,
-                arrival_date=date(2026, 7, 7),
-                departure_date=date(2026, 7, 14),
+                arrival_date=t_upcoming.start_date + timedelta(days=7),
+                departure_date=t_upcoming.end_date,
                 stay_cost=950.0
             )
             db.add(stop2)

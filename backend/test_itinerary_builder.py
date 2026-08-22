@@ -23,7 +23,8 @@ def auth_headers():
 def sample_trip_id(auth_headers):
     trips_res = client.get("/api/trips", headers=auth_headers)
     trips = trips_res.json()
-    return trips[0]["id"]
+    trip = next(t for t in trips if t["title"] == "European Summer Gateway 2026")
+    return trip["id"]
 
 def test_relational_itinerary_stops_and_activities(auth_headers, sample_trip_id):
     res = client.get(f"/api/trips/{sample_trip_id}/stops", headers=auth_headers)
@@ -33,7 +34,7 @@ def test_relational_itinerary_stops_and_activities(auth_headers, sample_trip_id)
     
     stop1 = stops[0]
     assert stop1["city"]["name"] == "Paris"
-    assert len(stop1["activities"]) >= 2
+    assert len(stop1["activities"]) >= 1
     assert stop1["activities"][0]["activity"]["name"] == "Eiffel Tower Summit & Seine Cruise"
 
 def test_add_stop_and_assign_catalog_activity(auth_headers, sample_trip_id):
@@ -69,7 +70,7 @@ def test_dynamic_budget_engine_calculation(auth_headers, sample_trip_id):
     
     assert budget_data["total_budget_target"] == 3500.0
     assert budget_data["calculated_stay_cost"] == 2150.0
-    assert budget_data["calculated_activity_cost"] == 105.0
-    assert budget_data["total_calculated_cost"] == 2255.0
-    assert budget_data["net_balance"] == 1245.0
+    assert budget_data["calculated_activity_cost"] == 65.0
+    assert budget_data["total_calculated_cost"] == 2215.0
+    assert budget_data["net_balance"] == 1285.0
     assert budget_data["is_over_budget"] is False

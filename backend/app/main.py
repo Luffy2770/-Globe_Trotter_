@@ -8,6 +8,7 @@ from app.api.trips import router as trips_router
 from app.api.dashboard import router as dashboard_router
 from app.api.activities import router as activities_router
 from app.api.itinerary import router as itinerary_router
+from app.api.trip_listing import router as trip_listing_router
 from seed import seed_database
 
 Base.metadata.create_all(bind=engine)
@@ -33,6 +34,7 @@ app.include_router(trips_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
 app.include_router(activities_router, prefix="/api")
 app.include_router(itinerary_router, prefix="/api")
+app.include_router(trip_listing_router, prefix="/api")
 
 @app.get("/")
 def root():
