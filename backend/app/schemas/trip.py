@@ -9,6 +9,8 @@ class TripBase(BaseModel):
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     total_budget: float = Field(0.0, ge=0.0)
+    city_id: Optional[int] = None
+    city_name: Optional[str] = None
 
 class TripCreate(TripBase):
     pass
@@ -20,6 +22,7 @@ class TripUpdate(BaseModel):
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     total_budget: Optional[float] = None
+    city_id: Optional[int] = None
 
 class TripResponse(TripBase):
     id: int
