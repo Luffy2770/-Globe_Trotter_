@@ -84,10 +84,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center space-x-3">
           <button
             onClick={onOpenCreateModal}
-            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition active:scale-[0.98]"
+            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition active:scale-[0.98]"
           >
-            <PlusCircle className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">+ Plan Trip</span>
+            <PlusCircle className="w-4 h-4" />
+            <span className="hidden md:inline">Plan Trip</span>
           </button>
 
           <div className="flex items-center space-x-2 border-l border-slate-200 pl-3">

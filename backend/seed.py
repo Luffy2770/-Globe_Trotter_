@@ -24,6 +24,8 @@ def seed_database():
                 "description": "The City of Light, famous for the Eiffel Tower, Louvre, and cafe culture.",
                 "image_url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600",
                 "banner_url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200",
+                "latitude": 48.8566,
+                "longitude": 2.3522,
                 "is_featured": True
             },
             {
@@ -36,6 +38,8 @@ def seed_database():
                 "description": "Ultra-modern metropolis blending neon skyscrapers with historic temples.",
                 "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600",
                 "banner_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200",
+                "latitude": 35.6762,
+                "longitude": 139.6503,
                 "is_featured": True
             },
             {
@@ -48,6 +52,106 @@ def seed_database():
                 "description": "Eternal City with ancient ruins, Colosseum, and vibrant piazza life.",
                 "image_url": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=600",
                 "banner_url": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1200",
+                "latitude": 41.9028,
+                "longitude": 12.4964,
+                "is_featured": True
+            },
+            {
+                "id": 4,
+                "name": "New York",
+                "country": "USA",
+                "region": "Americas",
+                "cost_index": 3.0,
+                "popularity_rating": 4.9,
+                "description": "The city that never sleeps, with Times Square, Central Park, and Broadway.",
+                "image_url": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=600",
+                "banner_url": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1200",
+                "latitude": 40.7128,
+                "longitude": -74.0060,
+                "is_featured": True
+            },
+            {
+                "id": 5,
+                "name": "London",
+                "country": "UK",
+                "region": "Europe",
+                "cost_index": 2.7,
+                "popularity_rating": 4.8,
+                "description": "Historic capital featuring Big Ben, Tower Bridge, and world-class museums.",
+                "image_url": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600",
+                "banner_url": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200",
+                "latitude": 51.5074,
+                "longitude": -0.1278,
+                "is_featured": True
+            },
+            {
+                "id": 6,
+                "name": "Dubai",
+                "country": "UAE",
+                "region": "Middle East",
+                "cost_index": 2.9,
+                "popularity_rating": 4.8,
+                "description": "Futuristic skyline with Burj Khalifa, desert safaris, and luxury shopping.",
+                "image_url": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600",
+                "banner_url": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200",
+                "latitude": 25.2048,
+                "longitude": 55.2708,
+                "is_featured": True
+            },
+            {
+                "id": 7,
+                "name": "Barcelona",
+                "country": "Spain",
+                "region": "Europe",
+                "cost_index": 2.2,
+                "popularity_rating": 4.7,
+                "description": "Mediterranean vibe with Sagrada Familia, beaches, and tapas culture.",
+                "image_url": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=600",
+                "banner_url": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=1200",
+                "latitude": 41.3879,
+                "longitude": 2.1699,
+                "is_featured": True
+            },
+            {
+                "id": 8,
+                "name": "Sydney",
+                "country": "Australia",
+                "region": "Oceania",
+                "cost_index": 2.6,
+                "popularity_rating": 4.8,
+                "description": "Iconic Opera House, Harbour Bridge, and famous Bondi Beach.",
+                "image_url": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=600",
+                "banner_url": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=1200",
+                "latitude": -33.8688,
+                "longitude": 151.2093,
+                "is_featured": True
+            },
+            {
+                "id": 9,
+                "name": "Singapore",
+                "country": "Singapore",
+                "region": "Asia",
+                "cost_index": 2.8,
+                "popularity_rating": 4.9,
+                "description": "Garden city with Marina Bay Sands, Gardens by the Bay, and street food.",
+                "image_url": "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600",
+                "banner_url": "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200",
+                "latitude": 1.3521,
+                "longitude": 103.8198,
+                "is_featured": True
+            },
+            {
+                "id": 10,
+                "name": "Cairo",
+                "country": "Egypt",
+                "region": "Africa",
+                "cost_index": 1.5,
+                "popularity_rating": 4.6,
+                "description": "Ancient civilization gateway featuring the Pyramids of Giza and the Nile.",
+                "image_url": "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=600",
+                "banner_url": "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=1200",
+                "latitude": 30.0444,
+                "longitude": 31.2357,
                 "is_featured": True
             }
         ]
@@ -64,7 +168,12 @@ def seed_database():
             {"id": 2, "city_id": 1, "name": "Louvre Museum Priority Entry", "category": "Culture", "estimated_cost": 40.0, "duration_minutes": 180, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400"},
             {"id": 3, "city_id": 2, "name": "Senso-ji Temple & Asakusa Walk", "category": "Culture", "estimated_cost": 25.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400"},
             {"id": 4, "city_id": 2, "name": "Paragliding over Mount Fuji foothills", "category": "Adventure", "estimated_cost": 150.0, "duration_minutes": 240, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400"},
-            {"id": 5, "city_id": 3, "name": "Colosseum & Ancient Forum Tour", "category": "Sightseeing", "estimated_cost": 50.0, "duration_minutes": 180, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400"}
+            {"id": 5, "city_id": 3, "name": "Colosseum & Ancient Forum Tour", "category": "Sightseeing", "estimated_cost": 50.0, "duration_minutes": 180, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400"},
+            {"id": 6, "city_id": 4, "name": "Statue of Liberty & Ellis Island Cruise", "category": "Sightseeing", "estimated_cost": 45.0, "duration_minutes": 210, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400"},
+            {"id": 7, "city_id": 5, "name": "Tower of London & Crown Jewels", "category": "History", "estimated_cost": 35.0, "duration_minutes": 150, "rating": 4.7, "image_url": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400"},
+            {"id": 8, "city_id": 6, "name": "Burj Khalifa At The Top Observation Deck", "category": "Sightseeing", "estimated_cost": 75.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400"},
+            {"id": 9, "city_id": 7, "name": "Sagrada Familia Guided Fast Track", "category": "Culture", "estimated_cost": 48.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400"},
+            {"id": 10, "city_id": 10, "name": "Great Pyramids of Giza & Sphinx Tour", "category": "History", "estimated_cost": 30.0, "duration_minutes": 240, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=400"}
         ]
 
         for act in activities_data:
