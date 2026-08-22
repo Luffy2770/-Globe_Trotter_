@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { itineraryApi, citiesApi, activitiesApi } from '../services/api';
-import { MapView } from '../components/MapView';
-import { Plus, Trash2, Calendar, Map } from 'lucide-react';
+import { Plus, Trash2, Calendar } from 'lucide-react';
 
 interface ItineraryBuilderPageProps {
   tripId: number;
@@ -39,17 +38,6 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
     fetchStops();
     citiesApi.search().then((res) => setCities(res.data));
   }, [tripId]);
-
-  const mapMarkers = stops
-    .filter((s) => s.city)
-    .map((s) => ({
-      id: s.id,
-      name: s.city.name,
-      country: s.city.country,
-      latitude: s.city.latitude || 20.0,
-      longitude: s.city.longitude || 0.0,
-      image_url: s.city.image_url,
-    }));
 
   const handleAddStopSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,16 +121,6 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
           <span>+ Add City Stop</span>
         </button>
       </div>
-
-      {mapMarkers.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
-            <Map className="w-4 h-4 text-blue-600" />
-            <span>Itinerary Stops Route Map ({mapMarkers.length} Cities)</span>
-          </h3>
-          <MapView markers={mapMarkers} zoom={3} height="280px" />
-        </div>
-      )}
 
       {loading ? (
         <div className="text-center py-16 text-slate-400 text-xs font-medium animate-pulse">

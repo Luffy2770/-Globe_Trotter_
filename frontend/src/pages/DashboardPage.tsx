@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dashboardApi, tripsApi } from '../services/api';
-import { MapView } from '../components/MapView';
-import { Search, Calendar, MapPin, DollarSign, Clock, Compass, PlusCircle, ArrowUpRight, Sparkles, Map } from 'lucide-react';
+import { Search, Calendar, MapPin, DollarSign, Clock, Compass, PlusCircle, ArrowUpRight, Sparkles, Globe } from 'lucide-react';
 
 interface DashboardPageProps {
   onOpenCreateModal: () => void;
@@ -21,8 +20,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [selectedContinent, setSelectedContinent] = useState('All');
   const [groupBy, setGroupBy] = useState('none');
   const [sortBy, setSortBy] = useState('created_at');
+
+  const continents = ['All', 'Europe', 'Asia', 'Americas', 'Middle East', 'Africa', 'Oceania'];
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -51,14 +53,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     fetchDashboard();
   }, [debouncedSearch, statusFilter, sortBy]);
 
-  const mapMarkers = (dashboardData?.top_regional_selections || []).map((city: any) => ({
-    id: city.id,
-    name: city.name,
-    country: city.country,
-    latitude: city.latitude != null ? city.latitude : 20.0,
-    longitude: city.longitude != null ? city.longitude : 0.0,
-    image_url: city.image_url,
-  }));
+  const filteredSelections = (dashboardData?.top_regional_selections || []).filter((city: any) => {
+    if (selectedContinent === 'All') return true;
+    return city.region?.toLowerCase() === selectedContinent.toLowerCase();
+  });
 
   const renderTripCard = (trip: any, index: number) => (
     <div
@@ -145,7 +143,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-900/60 to-transparent p-10 md:p-14 lg:p-16 flex flex-col justify-center max-w-2xl space-y-4">
             <span className="px-3.5 py-1 bg-white/20 backdrop-blur-md text-white text-[11px] font-bold rounded-full w-fit flex items-center space-x-1">
               <Sparkles className="w-3.5 h-3.5 text-amber-300 mr-1.5 inline" />
-              Main Landing Page (Screen 3)
+              Explore & Plan
             </span>
             <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
               {dashboardData.banner.title}
@@ -157,7 +155,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       )}
 
-      {/* 2. Search & Controls Bar (Search bar ..... | Group by | Filter | Sort by...) */}
+      {/* 2. Search & Controls Bar */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
@@ -205,32 +203,36 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       </div>
 
-      {/* Interactive Map Visualizer */}
-      {mapMarkers.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-2">
-              <Map className="w-4 h-4 text-blue-600 mr-1" />
-              <span>Interactive Destinations Map</span>
-            </h3>
+      {/* 3. Top Regional Selections Section (Filtered by Continent) */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+          <h2 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+            <Compass className="w-4 h-4 text-blue-600" />
+            <span>Top Regional Selections</span>
+          </h2>
+
+          {/* Continent Filters */}
+          <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-none">
+            <Globe className="w-3.5 h-3.5 text-slate-400 mr-1 flex-shrink-0" />
+            {continents.map((cont) => (
+              <button
+                key={cont}
+                onClick={() => setSelectedContinent(cont)}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+                  selectedContinent === cont
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                {cont}
+              </button>
+            ))}
           </div>
-          <MapView markers={mapMarkers} zoom={2} height="280px" />
         </div>
-      )}
 
-      {/* 3. Top Regional Selections Section */}
-      {dashboardData?.top_regional_selections?.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-            <h2 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-              <Compass className="w-4 h-4 text-blue-600" />
-              <span>Top Regional Selections</span>
-            </h2>
-            <span className="text-xs text-slate-400 font-medium">Curated world selections</span>
-          </div>
-
+        {filteredSelections.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {dashboardData.top_regional_selections.slice(0, 5).map((city: any, idx: number) => (
+            {filteredSelections.slice(0, 10).map((city: any, idx: number) => (
               <div
                 key={city.id}
                 style={{ animationDelay: `${idx * 0.05}s` }}
@@ -250,8 +252,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center text-xs text-slate-400 italic">
+            No destination cities available for continent "{selectedContinent}".
+          </div>
+        )}
+      </div>
 
       {/* 4. Previous Trips / User Trips Section */}
       <div className="space-y-4">
