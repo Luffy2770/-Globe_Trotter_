@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { tripsApi, citiesApi, activitiesApi } from '../services/api';
-import { X, Calendar, DollarSign, PlusCircle, Check, Star } from 'lucide-react';
+import { X, Calendar, DollarSign, PlusCircle, Check, Star, ChevronDown } from 'lucide-react';
 
 interface CreateTripModalProps {
   isOpen: boolean;
@@ -138,17 +138,20 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Select a Place :</label>
-                  <select
-                    value={selectedCityId}
-                    onChange={(e) => handleCityChange(Number(e.target.value))}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 cursor-pointer"
-                  >
-                    {cities.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}, {c.country} ({c.region})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={selectedCityId}
+                      onChange={(e) => handleCityChange(Number(e.target.value))}
+                      className="w-full bg-white border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                    >
+                      {cities.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}, {c.country} ({c.region})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+                  </div>
                 </div>
 
                 <div>
