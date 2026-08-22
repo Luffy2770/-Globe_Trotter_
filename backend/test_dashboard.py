@@ -1,8 +1,17 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.db.session import Base, engine
+from seed import seed_database
 
 client = TestClient(app)
+
+@pytest.fixture(autouse=True)
+def setup_database():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    seed_database()
+    yield
 
 @pytest.fixture
 def auth_headers():

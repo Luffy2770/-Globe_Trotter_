@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.trip import Trip
+from app.models.city import City
 from app.models.user import User
 from app.schemas.trip import TripCreate, TripResponse, TripUpdate
 from app.api.deps import get_current_user
@@ -22,6 +23,15 @@ def create_trip(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    selected_city_id = payload.city_id
+    selected_city_name = payload.city_name
+    
+    if payload.city_name and not selected_city_id:
+        c = db.query(City).filter(City.name.ilike(payload.city_name)).first()
+        if c:
+            selected_city_id = c.id
+            selected_city_name = c.name
+
     new_trip = Trip(
         user_id=current_user.id,
         title=payload.title,
@@ -29,7 +39,9 @@ def create_trip(
         cover_image_url=payload.cover_image_url,
         start_date=payload.start_date,
         end_date=payload.end_date,
-        total_budget=payload.total_budget
+        total_budget=payload.total_budget,
+        city_id=selected_city_id,
+        city_name=selected_city_name
     )
     db.add(new_trip)
     db.commit()
