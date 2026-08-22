@@ -10,7 +10,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -22,6 +22,11 @@ export const authApi = {
   register: (payload: any) => api.post('/auth/register', payload),
   demoLogin: () => api.post('/auth/demo-login'),
   getMe: () => api.get('/auth/me'),
+};
+
+export const profileApi = {
+  getProfilePage: () => api.get('/profile'),
+  updateProfile: (payload: any) => api.put('/profile', payload),
 };
 
 export const dashboardApi = {
