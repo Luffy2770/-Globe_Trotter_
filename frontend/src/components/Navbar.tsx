@@ -1,5 +1,5 @@
 import React from 'react';
-import { Compass, MapPin, Calendar, PieChart, LogOut, User as UserIcon, PlusCircle, Search } from 'lucide-react';
+import { Compass, Calendar, LogOut, User as UserIcon, PlusCircle, Search } from 'lucide-react';
 
 interface NavbarProps {
   user: any;
@@ -34,50 +34,26 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center space-x-1 sm:space-x-2 bg-slate-100/70 p-1 rounded-2xl border border-slate-200/50">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+            className={`flex items-center space-x-2 px-4 py-1.5 rounded-xl text-xs font-semibold transition ${
               activeTab === 'dashboard'
                 ? 'bg-white text-blue-600 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Calendar className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">My Trips</span>
+            <span>My Trips</span>
           </button>
 
           <button
             onClick={() => setActiveTab('catalog')}
-            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+            className={`flex items-center space-x-2 px-4 py-1.5 rounded-xl text-xs font-semibold transition ${
               activeTab === 'catalog'
                 ? 'bg-white text-blue-600 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Search className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Catalog</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('itinerary')}
-            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
-              activeTab === 'itinerary'
-                ? 'bg-white text-blue-600 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <MapPin className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Itinerary</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('budget')}
-            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
-              activeTab === 'budget'
-                ? 'bg-white text-blue-600 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <PieChart className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Budget</span>
+            <span>Catalog</span>
           </button>
         </div>
 

@@ -13,7 +13,6 @@ Base.metadata.create_all(bind=engine)
 def seed_database():
     db = SessionLocal()
     try:
-        # 100 World Destinations categorized by Continent/Region
         raw_destinations = [
             # Europe (25 cities)
             ("Paris", "France", "Europe", 2.5, 4.9, "City of Light & Eiffel Tower", "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600"),
@@ -80,16 +79,6 @@ def seed_database():
             ("Cusco", "Peru", "Americas", 1.5, 4.9, "Machu Picchu & Inca Trail", "https://images.unsplash.com/photo-1526392060635-9d6019884377?w=600"),
             ("Mexico City", "Mexico", "Americas", 1.6, 4.8, "Frida Kahlo Museum & Teotihuacan", "https://images.unsplash.com/photo-1512813195386-6cf811ad3542?w=600"),
             ("Cancun", "Mexico", "Americas", 2.0, 4.7, "Mayan Riviera & Caribbean Beaches", "https://images.unsplash.com/photo-1510097467424-192d713be8b2?w=600"),
-            ("Chicago", "USA", "Americas", 2.7, 4.7, "Millennium Park & Deep Dish Pizza", "https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=600"),
-            ("Miami", "USA", "Americas", 2.8, 4.7, "South Beach & Art Deco District", "https://images.unsplash.com/photo-1506966953377-3f925a26e07b?w=600"),
-            ("Montreal", "Canada", "Americas", 2.2, 4.7, "Old Montreal & French Culture", "https://images.unsplash.com/photo-1519178614-68693b05f812?w=600"),
-            ("Cartagena", "Colombia", "Americas", 1.5, 4.8, "Walled Colonial City & Caribbean Sea", "https://images.unsplash.com/photo-1583531172005-814191b8b6c0?w=600"),
-            ("Santiago", "Chile", "Americas", 1.9, 4.6, "Andes Mountain Backdrop & Wine", "https://images.unsplash.com/photo-1549924231-f129b911e442?w=600"),
-            ("Las Vegas", "USA", "Americas", 2.7, 4.7, "The Strip & Grand Canyon Gateway", "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600"),
-            ("Havana", "Cuba", "Americas", 1.5, 4.7, "Classic 1950s Cars & Malecon", "https://images.unsplash.com/photo-1500759285222-a95626b934cb?w=600"),
-            ("San Jose", "Costa Rica", "Americas", 1.7, 4.8, "Rainforest Ziplining & Volcanoes", "https://images.unsplash.com/photo-1518638150340-f706e86654de?w=600"),
-            ("Panama City", "Panama", "Americas", 1.8, 4.6, "Panama Canal & Skyline", "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600"),
-            ("Quito", "Ecuador", "Americas", 1.4, 4.7, "Equator Monument & Galapagos Gateway", "https://images.unsplash.com/photo-1582298538104-fe2e74c27f59?w=600"),
 
             # Middle East (10 cities)
             ("Dubai", "UAE", "Middle East", 2.9, 4.8, "Burj Khalifa & Desert Safaris", "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600"),
@@ -97,11 +86,6 @@ def seed_database():
             ("Istanbul", "Turkey", "Middle East", 1.7, 4.9, "Hagia Sophia & Grand Bazaar", "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=600"),
             ("Petra", "Jordan", "Middle East", 1.8, 4.9, "Rose Red Ancient Rock City", "https://images.unsplash.com/photo-1579606032821-6c2e3919b5b2?w=600"),
             ("Doha", "Qatar", "Middle East", 2.7, 4.7, "Museum of Islamic Art & Souq Waqif", "https://images.unsplash.com/photo-1578898835028-262193b22b64?w=600"),
-            ("Riyadh", "Saudi Arabia", "Middle East", 2.5, 4.6, "Kingdom Centre & Al Masmak Fortress", "https://images.unsplash.com/photo-1586724237569-f3d0c1dee8c6?w=600"),
-            ("Muscat", "Oman", "Middle East", 2.1, 4.8, "Sultan Qaboos Grand Mosque & Fjords", "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=600"),
-            ("Tel Aviv", "Israel", "Middle East", 2.9, 4.7, "Mediterranean Beaches & Tech Hub", "https://images.unsplash.com/photo-1544971587-b842c27f8c14?w=600"),
-            ("Jerusalem", "Israel", "Middle East", 2.5, 4.9, "Western Wall & Old City Gates", "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=600"),
-            ("Beirut", "Lebanon", "Middle East", 1.8, 4.6, "Paris of the Middle East & Cuisine", "https://images.unsplash.com/photo-1578898835028-262193b22b64?w=600"),
 
             # Africa (10 cities)
             ("Cairo", "Egypt", "Africa", 1.5, 4.6, "Great Pyramids & Egyptian Museum", "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=600"),
@@ -109,43 +93,32 @@ def seed_database():
             ("Marrakech", "Morocco", "Africa", 1.6, 4.8, "Jemaa el-Fnaa & Medina Souks", "https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=600"),
             ("Nairobi", "Kenya", "Africa", 1.7, 4.7, "Safari National Park & Giraffe Centre", "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600"),
             ("Zanzibar", "Tanzania", "Africa", 1.9, 4.9, "Turquoise Spice Beaches & Stone Town", "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=600"),
-            ("Luxor", "Egypt", "Africa", 1.4, 4.8, "Valley of the Kings & Karnak Temple", "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=600"),
-            ("Casablanca", "Morocco", "Africa", 1.7, 4.6, "Hassan II Mosque on the Atlantic", "https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=600"),
-            ("Johannesburg", "South Africa", "Africa", 1.7, 4.6, "Soweto & Apartheid Museum", "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=600"),
-            ("Kigali", "Rwanda", "Africa", 1.8, 4.8, "Gorilla Trekking & Cleanest City", "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600"),
-            ("Victoria Falls", "Zimbabwe", "Africa", 1.9, 4.9, "Smoke That Thunders Waterfall", "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600"),
 
             # Oceania (10 cities)
             ("Sydney", "Australia", "Oceania", 2.6, 4.8, "Opera House & Bondi Beach", "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=600"),
-            ("Melbourne", "Australia", "Oceania", 2.5, 4.8, "Coffee Culture & Street Art Laneways", "https://images.unsplash.com/photo-1514395462725-fb4566210144?w=600"),
+            ("Melbourne", "Australia", "Oceania", 2.5, 4.8, "Coffee Culture & Laneways", "https://images.unsplash.com/photo-1514395462725-fb4566210144?w=600"),
             ("Auckland", "New Zealand", "Oceania", 2.4, 4.7, "City of Sails & Hobbiton Gateway", "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=600"),
             ("Queenstown", "New Zealand", "Oceania", 2.7, 4.9, "Adventure Capital & Fjordlands", "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=600"),
-            ("Cairns", "Australia", "Oceania", 2.2, 4.8, "Great Barrier Reef Scuba Diving", "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=600"),
-            ("Fiji", "Fiji", "Oceania", 2.8, 4.9, "Coral Lagoons & Island Resorts", "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=600"),
-            ("Bora Bora", "French Polynesia", "Oceania", 3.8, 4.9, "Luxury Overwater Bungalows", "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600"),
-            ("Brisbane", "Australia", "Oceania", 2.3, 4.7, "South Bank Lagoon & Gold Coast", "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=600"),
-            ("Perth", "Australia", "Oceania", 2.4, 4.7, "Rottnest Island Quokkas & Sunsets", "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=600"),
-            ("Honolulu", "Hawaii", "Oceania", 2.9, 4.8, "Waikiki Beach & Diamond Head", "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600")
+            ("Fiji", "Fiji", "Oceania", 2.8, 4.9, "Coral Lagoons & Island Resorts", "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=600")
         ]
 
         for i, (name, country, region, cost, rating, desc, img) in enumerate(raw_destinations, 1):
-            existing = db.query(City).filter(City.id == i).first()
-            if not existing:
-                db.add(City(
-                    id=i,
-                    name=name,
-                    country=country,
-                    region=region,
-                    cost_index=cost,
-                    popularity_rating=rating,
-                    description=desc,
-                    image_url=img,
-                    is_featured=True
-                ))
+            city_obj = db.query(City).filter(City.id == i).first()
+            if not city_obj:
+                city_obj = City(id=i)
+                db.add(city_obj)
+            
+            city_obj.name = name
+            city_obj.country = country
+            city_obj.region = region
+            city_obj.cost_index = cost
+            city_obj.popularity_rating = rating
+            city_obj.description = desc
+            city_obj.image_url = img
+            city_obj.is_featured = True
 
         db.flush()
 
-        # Activities for Cities
         activities_data = [
             {"id": 1, "city_id": 1, "name": "Eiffel Tower Summit & Seine Cruise", "category": "Sightseeing", "estimated_cost": 65.0, "duration_minutes": 180, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400"},
             {"id": 2, "city_id": 1, "name": "Louvre Museum Priority Entry", "category": "Culture", "estimated_cost": 40.0, "duration_minutes": 180, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400"},

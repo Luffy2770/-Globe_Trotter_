@@ -68,6 +68,11 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
       return;
     }
 
+    if (startDate && endDate && endDate < startDate) {
+      setError('End date cannot be earlier than start date.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -169,7 +174,10 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                     <input
                       type="date"
                       value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        if (endDate && e.target.value > endDate) setEndDate(e.target.value);
+                      }}
                       className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                     />
                   </div>
@@ -181,6 +189,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                     <Calendar className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
                     <input
                       type="date"
+                      min={startDate || undefined}
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { itineraryApi, citiesApi, activitiesApi } from '../services/api';
-import { Plus, Trash2, Calendar } from 'lucide-react';
+import { Plus, Trash2, Calendar, DollarSign, Tag } from 'lucide-react';
 
 interface ItineraryBuilderPageProps {
   tripId: number;
@@ -41,6 +41,11 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
 
   const handleAddStopSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (arrivalDate && departureDate && departureDate < arrivalDate) {
+      alert('Departure date cannot be earlier than arrival date.');
+      return;
+    }
+
     try {
       const payload = {
         city_id: Number(selectedCityId),
@@ -57,7 +62,7 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
   };
 
   const handleDeleteStop = async (stopId: number) => {
-    if (!confirm('Are you sure you want to delete this trip stop?')) return;
+    if (!confirm('Are you sure you want to delete this trip section?')) return;
     try {
       await itineraryApi.deleteStop(tripId, stopId);
       fetchStops();
@@ -104,51 +109,50 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-6 animate-scale-up">
+      {/* Screen 5 Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-xs">
         <div>
           <span className="px-3 py-1 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-full border border-blue-200">
-            Relational Itinerary Builder
+            Build Itinerary Screen (Screen 5)
           </span>
-          <h1 className="text-2xl font-bold text-slate-900 mt-2">Multi-City Trip Stops & Activities</h1>
-          <p className="text-xs text-slate-500 font-medium">Manage city stops, accommodation budgets, and scheduled catalog activities.</p>
+          <h1 className="text-2xl font-bold text-slate-900 mt-2">Trip Sections & Itinerary Builder</h1>
+          <p className="text-xs text-slate-500 font-medium">All necessary information about trip sections, travel, hotel stay, and activities.</p>
         </div>
 
         <button
           onClick={() => setShowAddStopModal(true)}
-          className="py-2.5 px-5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-2xl text-xs flex items-center space-x-2 shadow-sm transition active:scale-[0.98]"
+          className="py-3 px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl text-xs flex items-center space-x-2 shadow-sm transition active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" />
-          <span>+ Add City Stop</span>
+          <span>+ Add another Section</span>
         </button>
       </div>
 
       {loading ? (
         <div className="text-center py-16 text-slate-400 text-xs font-medium animate-pulse">
-          Loading trip stops...
+          Loading itinerary sections...
         </div>
       ) : (
         <div className="space-y-6">
-          {stops.map((stop, index) => (
-            <div
-              key={stop.id}
-              style={{ animationDelay: `${index * 0.1}s` }}
-              className="apple-card p-6 shadow-xs hover:shadow-md transition animate-fade-in space-y-4"
-            >
-              <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-2">
-                <div className="flex items-center space-x-3.5">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold text-sm">
-                    #{index + 1}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">{stop.city?.name}, {stop.city?.country}</h3>
-                    <p className="text-xs text-slate-500 font-medium">{stop.city?.region} • Stay Budget: ${stop.stay_cost}</p>
-                  </div>
-                </div>
+          {stops.map((stop, index) => {
+            const totalSectionActivitiesCost = (stop.activities || []).reduce((acc: number, ta: any) => acc + (ta.effective_cost || 0), 0);
+            const totalSectionBudget = (stop.stay_cost || 0) + totalSectionActivitiesCost;
 
-                <div className="flex items-center space-x-3">
-                  <div className="text-xs text-slate-700 bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200 font-medium">
-                    <Calendar className="w-3.5 h-3.5 inline mr-1.5 text-teal-600" />
-                    {stop.arrival_date || 'N/A'} to {stop.departure_date || 'N/A'}
+            return (
+              <div
+                key={stop.id}
+                style={{ animationDelay: `${index * 0.1}s` }}
+                className="apple-card p-6 shadow-xs hover:shadow-md transition animate-fade-in space-y-5"
+              >
+                {/* Section Header */}
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center space-x-3">
+                    <span className="px-3 py-1 bg-blue-50 text-blue-600 font-extrabold text-xs rounded-xl border border-blue-200">
+                      Section {index + 1}:
+                    </span>
+                    <h3 className="text-lg font-bold text-slate-900">
+                      {stop.city?.name || 'Destination'}, {stop.city?.country || 'Region'}
+                    </h3>
                   </div>
 
                   <button
@@ -158,64 +162,98 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Scheduled Activities ({stop.activities?.length || 0})
-                  </h4>
-                  <button
-                    onClick={() => openAssignActivityModal(stop)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-500 flex items-center space-x-1"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Assign Activity from Catalog</span>
-                  </button>
+                {/* Section Details Paragraph (Matching Wireframe) */}
+                <div className="text-xs text-slate-600 leading-relaxed bg-slate-50/60 p-4 rounded-2xl border border-slate-100 font-medium">
+                  All the necessary information about this section. This includes travel details for {stop.city?.name || 'this stop'}, hotel stay budget, and scheduled activities.
                 </div>
 
-                {stop.activities?.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {stop.activities.map((ta: any) => (
-                      <div
-                        key={ta.id}
-                        className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between hover:border-blue-200 transition"
-                      >
-                        <div className="space-y-1">
-                          <span className="px-2.5 py-0.5 text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-200/60 rounded-md">
-                            {ta.activity?.category}
-                          </span>
-                          <h5 className="text-xs font-bold text-slate-900 mt-1">{ta.activity?.name}</h5>
-                          <p className="text-[11px] text-slate-500 font-medium">
-                            Effective Cost: <span className="text-slate-900 font-bold">${ta.effective_cost}</span>
-                            {ta.notes && ` • ${ta.notes}`}
-                          </p>
-                        </div>
+                {/* Scheduled Activities */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
+                      <Tag className="w-3.5 h-3.5 text-blue-500 mr-1" />
+                      <span>Activities & Events ({stop.activities?.length || 0})</span>
+                    </h4>
+                    <button
+                      onClick={() => openAssignActivityModal(stop)}
+                      className="text-xs font-semibold text-blue-600 hover:text-blue-500 flex items-center space-x-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Add Activity to Section</span>
+                    </button>
+                  </div>
 
-                        <button
-                          onClick={() => handleRemoveActivity(stop.id, ta.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-white"
+                  {stop.activities?.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {stop.activities.map((ta: any) => (
+                        <div
+                          key={ta.id}
+                          className="bg-white border border-slate-200 rounded-2xl p-3.5 flex items-center justify-between hover:border-blue-200 transition"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
+                          <div className="space-y-0.5">
+                            <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-50 text-blue-600 rounded-md">
+                              {ta.activity?.category}
+                            </span>
+                            <h5 className="text-xs font-bold text-slate-900 mt-1">{ta.activity?.name}</h5>
+                            <p className="text-[11px] text-slate-500 font-medium">
+                              Cost: <span className="text-slate-900 font-bold">${ta.effective_cost}</span>
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() => handleRemoveActivity(stop.id, ta.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-slate-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-white border border-slate-200/60 rounded-2xl p-3.5 text-xs text-slate-400 italic">
+                      No activities assigned to this section yet.
+                    </div>
+                  )}
+                </div>
+
+                {/* Wireframe Control Buttons Row: Date Range & Section Budget */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-700 flex items-center space-x-2">
+                    <Calendar className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                    <span>Date Range: <strong className="text-slate-900">{stop.arrival_date || 'TBD'} to {stop.departure_date || 'TBD'}</strong></span>
                   </div>
-                ) : (
-                  <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 text-xs text-slate-400 italic">
-                    No activities assigned to this stop yet. Click "Assign Activity from Catalog" above.
+
+                  <div className="bg-blue-50/80 border border-blue-200 rounded-2xl px-4 py-3 text-xs font-semibold text-blue-700 flex items-center justify-between">
+                    <span className="flex items-center">
+                      <DollarSign className="w-4 h-4 text-blue-600 mr-1 flex-shrink-0" />
+                      Budget of this section:
+                    </span>
+                    <span className="text-blue-950 font-extrabold text-sm">${totalSectionBudget.toLocaleString()}</span>
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+
+          {/* Bottom Add Section Button */}
+          <div className="text-center pt-4">
+            <button
+              onClick={() => setShowAddStopModal(true)}
+              className="py-3.5 px-8 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl text-xs inline-flex items-center space-x-2 shadow-md transition active:scale-[0.98]"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Add another Section</span>
+            </button>
+          </div>
         </div>
       )}
 
+      {/* Add Section Modal */}
       {showAddStopModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-900">Add City Stop to Trip</h3>
+            <h3 className="text-lg font-bold text-slate-900">Add another Section</h3>
             <form onSubmit={handleAddStopSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Select Destination City</label>
@@ -226,14 +264,14 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
                 >
                   {cities.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name}, {c.country}
+                      {c.name}, {c.country} ({c.region})
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Stay Cost ($ USD)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Stay / Accommodation Cost ($ USD)</label>
                 <input
                   type="number"
                   min="0"
@@ -249,7 +287,10 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
                   <input
                     type="date"
                     value={arrivalDate}
-                    onChange={(e) => setArrivalDate(e.target.value)}
+                    onChange={(e) => {
+                      setArrivalDate(e.target.value);
+                      if (departureDate && e.target.value > departureDate) setDepartureDate(e.target.value);
+                    }}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -257,6 +298,7 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Departure Date</label>
                   <input
                     type="date"
+                    min={arrivalDate || undefined}
                     value={departureDate}
                     onChange={(e) => setDepartureDate(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
@@ -273,7 +315,7 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
                   Cancel
                 </button>
                 <button type="submit" className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl shadow-sm">
-                  Add Stop
+                  Add Section
                 </button>
               </div>
             </form>
@@ -281,10 +323,11 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
         </div>
       )}
 
+      {/* Assign Activity Modal */}
       {selectedStopId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-900">Assign Activity from Master Catalog</h3>
+            <h3 className="text-lg font-bold text-slate-900">Assign Activity to Section</h3>
             <form onSubmit={handleAssignActivitySubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Select Activity</label>
@@ -321,7 +364,7 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
                   Cancel
                 </button>
                 <button type="submit" className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl shadow-sm">
-                  Assign to Stop
+                  Assign to Section
                 </button>
               </div>
             </form>
