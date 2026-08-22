@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { tripsApi } from '../services/api';
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Check, MapPin, Sparkles, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, MapPin, Clock, Layers } from 'lucide-react';
 
 interface CityColorStyle {
   dot: string;
@@ -35,6 +35,8 @@ interface TripDayCard {
   dateISO: string;
   dateDisplay: string;
   dayOfWeek: string;
+  sectionsForDay: any[];
+  activitiesForDay: any[];
 }
 
 interface TripRow {
@@ -49,23 +51,7 @@ export const CalendarPlannerPage: React.FC = () => {
 
   // Month offset for upper interactive compact calendar
   const [monthOffset, setMonthOffset] = useState(0);
-
   const [tripRows, setTripRows] = useState<TripRow[]>([]);
-  const [showAddModalDayISO, setShowAddModalDayISO] = useState<string | null>(null);
-
-  const [newActivityName, setNewActivityName] = useState('');
-  const [newActivityCategory, setNewActivityCategory] = useState('Sightseeing');
-  const [newActivityCost, setNewActivityCost] = useState(30);
-
-  // Persistent activities map in localStorage
-  const [dayActivitiesMap, setDayActivitiesMap] = useState<Record<string, any[]>>(() => {
-    const saved = localStorage.getItem('tripyfy_calendar_activities');
-    return saved ? JSON.parse(saved) : {};
-  });
-
-  useEffect(() => {
-    localStorage.setItem('tripyfy_calendar_activities', JSON.stringify(dayActivitiesMap));
-  }, [dayActivitiesMap]);
 
   const fetchTripsAndBuildData = async () => {
     setLoading(true);
@@ -78,7 +64,7 @@ export const CalendarPlannerPage: React.FC = () => {
       ];
       setAllTrips(fetchedTrips);
 
-      // Build Trip-Wise Rows (ONLY days when there is a trip!)
+      // Build Trip-Wise Rows directly from Itinerary Builder sections
       const rows: TripRow[] = [];
 
       fetchedTrips.forEach((trip) => {
@@ -86,6 +72,10 @@ export const CalendarPlannerPage: React.FC = () => {
 
         const start = new Date(trip.start_date);
         const end = new Date(trip.end_date);
+
+        // Load itinerary sections saved for this trip
+        const savedSecsJson = localStorage.getItem(`tripyfy_itinerary_sections_${trip.id}`);
+        const tripSections: any[] = savedSecsJson ? JSON.parse(savedSecsJson) : [];
 
         const tripDays: TripDayCard[] = [];
         let dayCounter = 1;
@@ -99,11 +89,31 @@ export const CalendarPlannerPage: React.FC = () => {
           const dateDisplay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           const dayOfWeek = d.toLocaleDateString('en-US', { weekday: 'short' });
 
+          // Find sections active on this date
+          const activeSecs = tripSections.filter((sec) => {
+            if (sec.startDate && sec.endDate) {
+              return dateISO >= sec.startDate && dateISO <= sec.endDate;
+            }
+            return true;
+          });
+
+          // Collect activities scheduled specifically on THIS dateISO
+          const activeActs: any[] = [];
+          tripSections.forEach((sec) => {
+            (sec.activities || []).forEach((act: any) => {
+              if (act.dateISO === dateISO) {
+                activeActs.push({ ...act, sectionTitle: sec.title });
+              }
+            });
+          });
+
           tripDays.push({
             dayNum: dayCounter++,
             dateISO,
             dateDisplay,
             dayOfWeek,
+            sectionsForDay: activeSecs,
+            activitiesForDay: activeActs,
           });
         }
 
@@ -127,27 +137,6 @@ export const CalendarPlannerPage: React.FC = () => {
   useEffect(() => {
     fetchTripsAndBuildData();
   }, []);
-
-  const handleAddActivityToDate = (dateISO: string) => {
-    if (!newActivityName.trim()) return;
-
-    const newItem = {
-      id: Date.now(),
-      name: newActivityName.trim(),
-      category: newActivityCategory,
-      cost: Number(newActivityCost) || 0,
-    };
-
-    const currentList = dayActivitiesMap[dateISO] || [];
-    const updatedMap = {
-      ...dayActivitiesMap,
-      [dateISO]: [...currentList, newItem],
-    };
-
-    setDayActivitiesMap(updatedMap);
-    setNewActivityName('');
-    setShowAddModalDayISO(null);
-  };
 
   // Compute current active month for upper interactive calendar
   const displayDate = new Date();
@@ -188,10 +177,10 @@ export const CalendarPlannerPage: React.FC = () => {
             className="text-3xl font-serif italic font-bold text-stone-900"
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
           >
-            Trip Itinerary Calendar & Trip-Wise Day Rows
+            Unified Trip Calendar & Date-Specific Activities
           </h1>
           <p className="text-xs text-stone-500 font-medium mt-1">
-            Interactive month navigation up top, and trip-wise day template rows below showing only active trip dates.
+            Connected 100% to Itinerary Builder. Activities appear strictly on their scheduled dates.
           </p>
         </div>
 
@@ -211,7 +200,7 @@ export const CalendarPlannerPage: React.FC = () => {
 
       {loading ? (
         <div className="text-center py-16 text-stone-400 text-xs font-medium animate-pulse">
-          Fetching trip itineraries & plotting calendar rows...
+          Connecting calendar to your trip itineraries...
         </div>
       ) : (
         <div className="space-y-8">
@@ -271,8 +260,7 @@ export const CalendarPlannerPage: React.FC = () => {
                 return (
                   <div
                     key={cell.dateISO}
-                    onClick={() => setShowAddModalDayISO(cell.dateISO)}
-                    className={`h-10 rounded-xl border flex flex-col items-center justify-center relative cursor-pointer transition ${
+                    className={`h-10 rounded-xl border flex flex-col items-center justify-center relative transition ${
                       hasTrips && colorStyle
                         ? `${colorStyle.bg} ${colorStyle.border} shadow-2xs`
                         : 'bg-white border-stone-200 hover:border-stone-300'
@@ -295,14 +283,14 @@ export const CalendarPlannerPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 2. Trip-Wise Day Template Rows Below (ONLY Trip Days, Row by Row!) */}
+          {/* 2. Trip-Wise Day Templates Connected to Itinerary Sections & Activities (STRICT DATE MATCHING) */}
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-stone-200 pb-2">
               <h2 className="text-base font-bold text-stone-900 flex items-center space-x-2">
                 <Clock className="w-4 h-4 text-emerald-800" />
-                <span>Trip-Wise Day Templates (Only Active Trip Days)</span>
+                <span>Scheduled Trip Days & Date-Specific Activities</span>
               </h2>
-              <span className="text-xs text-stone-400 font-medium">Grouped row by row for each trip</span>
+              <span className="text-xs text-stone-400 font-medium">Activities appear strictly on their scheduled dates</span>
             </div>
 
             {tripRows.length > 0 ? (
@@ -336,130 +324,57 @@ export const CalendarPlannerPage: React.FC = () => {
 
                   {/* Horizontal Scroll of ONLY This Trip's Days */}
                   <div className="flex items-center space-x-4 overflow-x-auto no-scrollbar py-2">
-                    {row.days.map((dayCard) => {
-                      const customActivities = dayActivitiesMap[dayCard.dateISO] || [];
-
-                      return (
-                        <div
-                          key={dayCard.dateISO}
-                          className={`flex-shrink-0 w-52 rounded-2xl p-4 shadow-2xs border-2 transition flex flex-col justify-between space-y-3 bg-white ${row.colorStyle.border}`}
-                        >
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between border-b border-stone-100 pb-1.5">
-                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${row.colorStyle.badge}`}>
-                                Day {dayCard.dayNum}
-                              </span>
-                              <span className="text-[11px] font-bold text-stone-900">{dayCard.dateDisplay}</span>
-                              <span className="text-[10px] text-stone-400 font-semibold uppercase">{dayCard.dayOfWeek}</span>
-                            </div>
-
-                            {/* Activities for Day */}
-                            <div className="space-y-1.5 min-h-16">
-                              {customActivities.length > 0 ? (
-                                customActivities.map((act) => (
-                                  <div
-                                    key={act.id}
-                                    className="p-2 bg-stone-50 border border-stone-200 rounded-xl text-[11px] space-y-0.5"
-                                  >
-                                    <span className="font-bold text-stone-900 block truncate">{act.name}</span>
-                                    <div className="flex justify-between text-[10px] text-stone-500 font-medium">
-                                      <span>{act.category}</span>
-                                      <strong>${act.cost}</strong>
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="py-3 text-center text-[10px] text-stone-400 italic">No activity added</div>
-                              )}
-                            </div>
+                    {row.days.map((dayCard) => (
+                      <div
+                        key={dayCard.dateISO}
+                        className={`flex-shrink-0 w-64 rounded-2xl p-4 shadow-2xs border-2 transition flex flex-col justify-between space-y-3 bg-white ${row.colorStyle.border}`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between border-b border-stone-100 pb-1.5">
+                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${row.colorStyle.badge}`}>
+                              Day {dayCard.dayNum}
+                            </span>
+                            <span className="text-[11px] font-bold text-stone-900">{dayCard.dateDisplay}</span>
+                            <span className="text-[10px] text-stone-400 font-semibold uppercase">{dayCard.dayOfWeek}</span>
                           </div>
 
-                          <button
-                            onClick={() => setShowAddModalDayISO(dayCard.dateISO)}
-                            className={`w-full py-1.5 text-xs font-bold rounded-xl transition flex items-center justify-center space-x-1 border shadow-2xs ${row.colorStyle.badge}`}
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>Add Activity</span>
-                          </button>
+                          {/* Itinerary Sections for this day */}
+                          <div className="space-y-2 min-h-24 pt-1">
+                            {dayCard.sectionsForDay.length > 0 && (
+                              <div className="text-[10px] font-bold text-stone-400 flex items-center space-x-1">
+                                <Layers className="w-3 h-3 text-emerald-700" />
+                                <span>{dayCard.sectionsForDay[0].title}</span>
+                              </div>
+                            )}
+
+                            {/* Activities scheduled specifically on THIS date */}
+                            {dayCard.activitiesForDay.length > 0 ? (
+                              <div className="space-y-1.5">
+                                {dayCard.activitiesForDay.map((act: any) => (
+                                  <div key={act.id} className="p-2.5 bg-emerald-50/60 border border-emerald-200 rounded-xl space-y-0.5 shadow-2xs">
+                                    <span className="font-bold text-stone-900 block text-[11px] truncate">• {act.name}</span>
+                                    <div className="flex justify-between text-[10px] text-stone-500 font-medium">
+                                      <span>{act.sectionTitle}</span>
+                                      <strong className="text-emerald-800">${act.cost}</strong>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="py-4 text-center text-[10px] text-stone-400 italic">No activity scheduled for this date</div>
+                            )}
+                          </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))
             ) : (
               <div className="bg-white border border-stone-200 rounded-3xl p-8 text-center text-xs text-stone-400 italic">
-                No scheduled trip dates currently found. Create a trip with start & end dates to display trip-wise day rows.
+                No scheduled trip dates currently found. Create a trip to display calendar itinerary rows.
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Add Activity Modal */}
-      {showAddModalDayISO && (
-        <div className="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 bg-stone-950/75 backdrop-blur-md overflow-hidden font-sans">
-          <div className="bg-white border border-stone-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative my-auto">
-            <h3 className="text-base font-bold text-stone-900 border-b border-stone-100 pb-2 flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-emerald-800" />
-              <span>Add Activity to Date ({showAddModalDayISO})</span>
-            </h3>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">Activity Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Shibuya Sky Visit or Louvre Museum Tour"
-                  value={newActivityName}
-                  onChange={(e) => setNewActivityName(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">Category</label>
-                  <select
-                    value={newActivityCategory}
-                    onChange={(e) => setNewActivityCategory(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
-                  >
-                    <option value="Sightseeing">Sightseeing</option>
-                    <option value="Culture">Culture</option>
-                    <option value="Culinary">Culinary</option>
-                    <option value="Adventure">Adventure</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">Estimated Cost ($ USD)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={newActivityCost}
-                    onChange={(e) => setNewActivityCost(Number(e.target.value))}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end space-x-2 pt-2 border-t border-stone-100">
-              <button
-                onClick={() => setShowAddModalDayISO(null)}
-                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-semibold rounded-xl"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleAddActivityToDate(showAddModalDayISO)}
-                className="px-5 py-2 bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center space-x-1"
-              >
-                <Check className="w-3.5 h-3.5" />
-                <span>Save Activity</span>
-              </button>
-            </div>
           </div>
         </div>
       )}

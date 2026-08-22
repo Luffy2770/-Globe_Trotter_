@@ -24,23 +24,45 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
   const completedTrips = tripsData?.completed || [];
   const allTrips = [...ongoingTrips, ...upcomingTrips, ...completedTrips];
 
-  const savedActivitiesJson = localStorage.getItem('tripyfy_calendar_activities');
-  const savedActivitiesMap: Record<string, any[]> = savedActivitiesJson ? JSON.parse(savedActivitiesJson) : {};
-  let calendarActivitiesTotalCost = 0;
-  Object.values(savedActivitiesMap).forEach((activitiesList) => {
-    activitiesList.forEach((act) => {
-      calendarActivitiesTotalCost += Number(act.cost) || 0;
-    });
+  // Dynamically calculate total spend from saved itinerary sections across all trips
+  let totalCalculatedSpendSum = 0;
+  allTrips.forEach((t) => {
+    const savedSecsJson = localStorage.getItem(`tripyfy_itinerary_sections_${t.id}`);
+    if (savedSecsJson) {
+      const secs: any[] = JSON.parse(savedSecsJson);
+      secs.forEach((s) => {
+        totalCalculatedSpendSum += Number(s.budget) || 0;
+        (s.activities || []).forEach((act: any) => {
+          totalCalculatedSpendSum += Number(act.cost) || 0;
+        });
+      });
+    } else {
+      totalCalculatedSpendSum += t.calculated_total_cost || t.total_budget || 0;
+    }
   });
 
   const selectedTrip = selectedTripId !== 'all' ? allTrips.find((t) => t.id === selectedTripId) : null;
 
+  // Single Trip spend calculation
+  let singleTripSpend = 0;
+  if (selectedTrip) {
+    const savedSecsJson = localStorage.getItem(`tripyfy_itinerary_sections_${selectedTrip.id}`);
+    if (savedSecsJson) {
+      const secs: any[] = JSON.parse(savedSecsJson);
+      secs.forEach((s) => {
+        singleTripSpend += Number(s.budget) || 0;
+        (s.activities || []).forEach((act: any) => {
+          singleTripSpend += Number(act.cost) || 0;
+        });
+      });
+    } else {
+      singleTripSpend = selectedTrip.calculated_total_cost || selectedTrip.total_budget || 0;
+    }
+  }
+
   const totalTripsCount = allTrips.length;
   const completedCount = completedTrips.length;
   const totalBudgetSum = allTrips.reduce((acc, t) => acc + (t.total_budget || 0), 0);
-  const totalSpentSum =
-    allTrips.reduce((acc, t) => acc + (t.calculated_total_cost || t.total_budget || 0), 0) +
-    calendarActivitiesTotalCost;
   const uniqueCitiesCount = new Set(allTrips.map((t) => t.city_name).filter(Boolean)).size;
 
   return (
@@ -124,16 +146,14 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
 
             <div className="bg-white border border-stone-200 rounded-3xl p-6 shadow-xs space-y-2">
               <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Calculated Spend</span>
-              <p className="text-3xl font-black text-emerald-800">
-                ${(selectedTrip.calculated_total_cost || selectedTrip.total_budget || 0).toLocaleString()}
-              </p>
-              <p className="text-[11px] text-stone-500 font-medium">Stops + assigned activities</p>
+              <p className="text-3xl font-black text-emerald-800">${singleTripSpend.toLocaleString()}</p>
+              <p className="text-[11px] text-stone-500 font-medium">Sections + itemized activities</p>
             </div>
 
             <div className="bg-white border border-stone-200 rounded-3xl p-6 shadow-xs space-y-2">
               <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Remaining Balance</span>
               <p className="text-3xl font-black text-stone-900">
-                ${Math.max(0, (selectedTrip.total_budget || 0) - (selectedTrip.calculated_total_cost || selectedTrip.total_budget || 0)).toLocaleString()}
+                ${Math.max(0, (selectedTrip.total_budget || 0) - singleTripSpend).toLocaleString()}
               </p>
               <p className="text-[11px] text-stone-500 font-medium">Available budget cushion</p>
             </div>
@@ -151,7 +171,7 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-bold text-stone-700">
                     <span>Accommodations & Hotel Stay (55%)</span>
-                    <span>${Math.round((selectedTrip.total_budget || 2000) * 0.55).toLocaleString()}</span>
+                    <span>${Math.round(singleTripSpend * 0.55).toLocaleString()}</span>
                   </div>
                   <div className="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
                     <div className="h-full bg-emerald-700 rounded-full" style={{ width: '55%' }} />
@@ -161,7 +181,7 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-bold text-stone-700">
                     <span>Sightseeing & Tours (25%)</span>
-                    <span>${Math.round((selectedTrip.total_budget || 2000) * 0.25).toLocaleString()}</span>
+                    <span>${Math.round(singleTripSpend * 0.25).toLocaleString()}</span>
                   </div>
                   <div className="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
                     <div className="h-full bg-amber-500 rounded-full" style={{ width: '25%' }} />
@@ -171,7 +191,7 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-bold text-stone-700">
                     <span>Dining & Culinary (20%)</span>
-                    <span>${Math.round((selectedTrip.total_budget || 2000) * 0.20).toLocaleString()}</span>
+                    <span>${Math.round(singleTripSpend * 0.20).toLocaleString()}</span>
                   </div>
                   <div className="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
                     <div className="h-full bg-blue-600 rounded-full" style={{ width: '20%' }} />
@@ -187,7 +207,7 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
                   <span>Budget Utilization Gauge</span>
                 </h3>
                 <p className="text-xs text-stone-500 font-medium">
-                  Currently utilized {Math.min(100, Math.round(((selectedTrip.calculated_total_cost || selectedTrip.total_budget) / selectedTrip.total_budget) * 100))}% of total budget.
+                  Currently utilized {Math.min(100, Math.round((singleTripSpend / (selectedTrip.total_budget || 1)) * 100))}% of total budget.
                 </p>
               </div>
 
@@ -199,13 +219,13 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
                 <div className="w-full h-4 bg-stone-100 rounded-full overflow-hidden border border-stone-200">
                   <div
                     className="h-full bg-emerald-700 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(100, Math.round(((selectedTrip.calculated_total_cost || selectedTrip.total_budget) / selectedTrip.total_budget) * 100))}%` }}
+                    style={{ width: `${Math.min(100, Math.round((singleTripSpend / (selectedTrip.total_budget || 1)) * 100))}%` }}
                   />
                 </div>
               </div>
 
               <div className="pt-2 border-t border-stone-100 text-xs text-stone-400 font-medium">
-                Tip: Add activities on the Itinerary Builder to log itemized receipts for this trip.
+                Tip: Add section budgets and activities on the Itinerary Builder to update this gauge.
               </div>
             </div>
           </div>
@@ -233,7 +253,7 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
                   <DollarSign className="w-4 h-4" />
                 </div>
               </div>
-              <p className="text-3xl font-black text-stone-900">${totalSpentSum.toLocaleString()}</p>
+              <p className="text-3xl font-black text-stone-900">${totalCalculatedSpendSum.toLocaleString()}</p>
               <p className="text-[11px] text-stone-500 font-medium">Total budget sum: ${totalBudgetSum.toLocaleString()}</p>
             </div>
 
@@ -268,8 +288,21 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
 
             <div className="space-y-3">
               {allTrips.map((trip) => {
-                const tripCost = (trip.calculated_total_cost || trip.total_budget || 0);
-                const percent = Math.min(Math.round((tripCost / (trip.total_budget || 1)) * 100), 100);
+                let tripSpend = 0;
+                const savedSecsJson = localStorage.getItem(`tripyfy_itinerary_sections_${trip.id}`);
+                if (savedSecsJson) {
+                  const secs: any[] = JSON.parse(savedSecsJson);
+                  secs.forEach((s) => {
+                    tripSpend += Number(s.budget) || 0;
+                    (s.activities || []).forEach((act: any) => {
+                      tripSpend += Number(act.cost) || 0;
+                    });
+                  });
+                } else {
+                  tripSpend = trip.calculated_total_cost || trip.total_budget || 0;
+                }
+
+                const percent = Math.min(Math.round((tripSpend / (trip.total_budget || 1)) * 100), 100);
 
                 return (
                   <div
@@ -282,7 +315,7 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
                         <span className="text-[10px] font-bold text-stone-400">({trip.city_name})</span>
                       </div>
                       <p className="text-[11px] text-stone-500 font-medium">
-                        Target Budget: ${trip.total_budget?.toLocaleString()}
+                        Target Budget: ${trip.total_budget?.toLocaleString()} • Calculated Spend: ${tripSpend.toLocaleString()}
                       </p>
                     </div>
 

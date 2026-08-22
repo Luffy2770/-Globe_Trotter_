@@ -1,6 +1,6 @@
 import React from 'react';
 import { TripyfyLogo } from './TripyfyLogo';
-import { Calendar, Search, LogOut, User as UserIcon, Plus, BarChart3, CalendarDays } from 'lucide-react';
+import { Calendar, Search, LogOut, User as UserIcon, Plus, BarChart3, CalendarDays, Layers } from 'lucide-react';
 
 interface NavbarProps {
   user: any;
@@ -20,7 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <nav className="bg-[#f8f9fa]/90 backdrop-blur-md border-b border-stone-200/80 sticky top-0 z-50 px-6 py-3 shadow-xs font-sans">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div onClick={() => setActiveTab('explore')}>
+        <div onClick={() => setActiveTab('explore')} className="cursor-pointer">
           <TripyfyLogo size="md" showText={true} />
         </div>
 
@@ -47,6 +47,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Calendar className="w-3.5 h-3.5" />
             <span>My Trips</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('itinerary')}
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+              activeTab === 'itinerary'
+                ? 'bg-white text-emerald-800 shadow-xs'
+                : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Itinerary Builder</span>
           </button>
 
           <button

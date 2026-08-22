@@ -1,399 +1,542 @@
 import React, { useState, useEffect } from 'react';
-import { itineraryApi, citiesApi, activitiesApi } from '../services/api';
-import { Plus, Trash2, Calendar, DollarSign, Tag, ChevronDown } from 'lucide-react';
+import { tripsApi } from '../services/api';
+import { Plus, Calendar, DollarSign, Trash2, Edit2, ChevronDown, ChevronUp, Check, Sparkles, AlertTriangle } from 'lucide-react';
+
+export interface SectionActivity {
+  id: number;
+  name: string;
+  cost: number;
+  dateISO: string;
+}
+
+export interface ItinerarySection {
+  id: number;
+  sectionNumber: number;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  activities: SectionActivity[];
+}
 
 interface ItineraryBuilderPageProps {
   tripId: number;
 }
 
-export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ tripId }) => {
-  const [stops, setStops] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
+// Universal Smart Template Generator for ANY trip / city
+const generateSmartUniversalSections = (tripObj: any): ItinerarySection[] => {
+  const city = tripObj?.city_name || tripObj?.title || 'Destination';
+  const start = tripObj?.start_date || '2026-10-01';
+  const end = tripObj?.end_date || start;
+  const budget = tripObj?.total_budget || 2000;
+
+  // Calculate mid date if multi-day
+  const sDate = new Date(start);
+  const eDate = new Date(end);
+  const diffDays = Math.max(1, Math.ceil((eDate.getTime() - sDate.getTime()) / (1000 * 3600 * 24)));
+  const midDays = Math.floor(diffDays / 2);
+
+  const midDateObj = new Date(sDate);
+  midDateObj.setDate(midDateObj.getDate() + midDays);
+  const midISO = midDateObj.toISOString().split('T')[0];
+
+  return [
+    {
+      id: 1,
+      sectionNumber: 1,
+      title: `Section 1: ${city} Arrival & Accommodation Stay`,
+      description: `All necessary information for your arrival leg in ${city}. Airport transfers, hotel check-in, and local neighborhood exploration.`,
+      startDate: start,
+      endDate: diffDays > 1 ? midISO : start,
+      budget: Math.round(budget * 0.40),
+      activities: [
+        { id: 101, name: `${city} Airport Express Transfer & Check-in`, cost: 45, dateISO: start },
+        { id: 102, name: `${city} Welcome Dinner & Evening Stroll`, cost: 55, dateISO: start },
+      ],
+    },
+    {
+      id: 2,
+      sectionNumber: 2,
+      title: `Section 2: ${city} Tours, Landmarks & Excursions`,
+      description: `All necessary information for guided city tours, historical landmark entries, museum visits, and culinary experiences in ${city}.`,
+      startDate: diffDays > 1 ? midISO : start,
+      endDate: end,
+      budget: Math.round(budget * 0.60),
+      activities: [
+        { id: 103, name: `Guided ${city} Cultural Heritage Tour`, cost: 65, dateISO: diffDays > 1 ? midISO : start },
+        { id: 104, name: `${city} Iconic Viewpoint & Dinner Excursion`, cost: 40, dateISO: end },
+      ],
+    },
+  ];
+};
+
+export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ tripId: initialTripId }) => {
+  const [allUserTrips, setAllUserTrips] = useState<any[]>([]);
+  const [activeTripId, setActiveTripId] = useState<number>(initialTripId);
+
+  const [trip, setTrip] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const [showAddStopModal, setShowAddStopModal] = useState(false);
-  const [selectedCityId, setSelectedCityId] = useState<number>(1);
-  const [arrivalDate, setArrivalDate] = useState('');
-  const [departureDate, setDepartureDate] = useState('');
-  const [stayCost, setStayCost] = useState(500);
+  // Section list state
+  const [sections, setSections] = useState<ItinerarySection[]>([]);
+  const [expandedSectionId, setExpandedSectionId] = useState<number | null>(null);
 
-  const [selectedStopId, setSelectedStopId] = useState<number | null>(null);
-  const [availableActivities, setAvailableActivities] = useState<any[]>([]);
-  const [selectedActivityId, setSelectedActivityId] = useState<number | null>(null);
-  const [costOverride, setCostOverride] = useState<number | ''>('');
-  const [activitiesLoading, setActivitiesLoading] = useState(false);
+  // Form state
+  const [editingSection, setEditingSection] = useState<ItinerarySection | null>(null);
+  const [newActivityName, setNewActivityName] = useState('');
+  const [newActivityCost, setNewActivityCost] = useState(30);
+  const [newActivityDate, setNewActivityDate] = useState('');
+  const [activityError, setActivityError] = useState('');
 
-  const fetchStops = async () => {
-    setLoading(true);
-    try {
-      const res = await itineraryApi.getStops(tripId);
-      setStops(res.data);
-    } catch (err) {
-      console.error('Failed to fetch trip stops:', err);
-    } finally {
-      setLoading(false);
+  // Fetch user trips listing for dropdown
+  useEffect(() => {
+    tripsApi.getTripsListing({}).then((res) => {
+      const flat = [...(res.data.ongoing || []), ...(res.data.upcoming || []), ...(res.data.completed || [])];
+      setAllUserTrips(flat);
+      if (flat.length > 0 && (!activeTripId || !flat.find((t) => t.id === activeTripId))) {
+        setActiveTripId(flat[0].id);
+      }
+    });
+  }, []);
+
+  // Persist sections in localStorage and calculate total spend
+  useEffect(() => {
+    if (activeTripId && sections.length > 0) {
+      localStorage.setItem(`tripyfy_itinerary_sections_${activeTripId}`, JSON.stringify(sections));
+
+      let totalSpent = 0;
+      sections.forEach((sec) => {
+        totalSpent += Number(sec.budget) || 0;
+        sec.activities.forEach((act) => {
+          totalSpent += Number(act.cost) || 0;
+        });
+      });
+
+      localStorage.setItem(`tripyfy_trip_spend_${activeTripId}`, String(totalSpent));
     }
-  };
+  }, [sections, activeTripId]);
 
   useEffect(() => {
-    fetchStops();
-    citiesApi.search().then((res) => setCities(res.data));
-  }, [tripId]);
+    if (!activeTripId) return;
+    setLoading(true);
 
-  const handleAddStopSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (arrivalDate && departureDate && departureDate < arrivalDate) {
-      alert('Departure date cannot be earlier than arrival date.');
+    tripsApi
+      .getOverview(activeTripId)
+      .then((res) => {
+        const fetchedTrip = res.data.trip;
+        setTrip(fetchedTrip);
+        const tripStart = fetchedTrip.start_date || '2026-10-01';
+        const tripEnd = fetchedTrip.end_date || tripStart;
+        setNewActivityDate(tripStart);
+
+        const saved = localStorage.getItem(`tripyfy_itinerary_sections_${activeTripId}`);
+        if (saved) {
+          try {
+            const parsed: ItinerarySection[] = JSON.parse(saved);
+
+            // SANITIZE CHECK: Validate that saved sections belong to THIS trip's date range and city!
+            const isValidForTrip = parsed.every((sec) => {
+              const inDateRange = sec.startDate >= tripStart && sec.endDate <= tripEnd;
+              const matchesCity = sec.title.toLowerCase().includes((fetchedTrip.city_name || '').toLowerCase()) ||
+                sec.title.toLowerCase().includes('section');
+              return inDateRange && matchesCity;
+            });
+
+            if (isValidForTrip && parsed.length > 0) {
+              setSections(parsed);
+              setExpandedSectionId(parsed[0]?.id || null);
+              setLoading(false);
+              return;
+            }
+          } catch (e) {
+            console.error('Failed to parse saved itinerary sections:', e);
+          }
+        }
+
+        // Generate fresh, perfectly synchronized sections for this trip!
+        const dynamicSections = generateSmartUniversalSections(fetchedTrip);
+        setSections(dynamicSections);
+        setExpandedSectionId(dynamicSections[0]?.id || null);
+        localStorage.setItem(`tripyfy_itinerary_sections_${activeTripId}`, JSON.stringify(dynamicSections));
+      })
+      .catch((err) => console.error('Failed to load trip itinerary:', err))
+      .finally(() => setLoading(false));
+  }, [activeTripId]);
+
+  const handleAddSection = () => {
+    const nextNumber = sections.length + 1;
+    const sDate = trip?.start_date || '2026-10-01';
+    const eDate = trip?.end_date || sDate;
+    const city = trip?.city_name || 'Destination';
+
+    const newSec: ItinerarySection = {
+      id: Date.now(),
+      sectionNumber: nextNumber,
+      title: `Section ${nextNumber}: ${city} Travel Leg ${nextNumber}`,
+      description: `All necessary information about this leg in ${city}. Add hotel accommodations, sightseeing excursions, or scheduled activities here.`,
+      startDate: sDate,
+      endDate: eDate,
+      budget: 400,
+      activities: [],
+    };
+    const updated = [...sections, newSec];
+    setSections(updated);
+    setExpandedSectionId(newSec.id);
+  };
+
+  const handleDeleteSection = (id: number) => {
+    if (sections.length <= 1) {
+      alert('Itinerary must have at least 1 section.');
       return;
     }
-
-    try {
-      const payload = {
-        city_id: Number(selectedCityId),
-        arrival_date: arrivalDate || null,
-        departure_date: departureDate || null,
-        stay_cost: Number(stayCost),
-      };
-      await itineraryApi.addStop(tripId, payload);
-      setShowAddStopModal(false);
-      fetchStops();
-    } catch (err) {
-      console.error('Failed to add stop:', err);
-    }
+    const updated = sections.filter((s) => s.id !== id).map((s, idx) => ({
+      ...s,
+      sectionNumber: idx + 1,
+    }));
+    setSections(updated);
   };
 
-  const handleDeleteStop = async (stopId: number) => {
-    if (!confirm('Are you sure you want to delete this trip section?')) return;
-    try {
-      await itineraryApi.deleteStop(tripId, stopId);
-      fetchStops();
-    } catch (err) {
-      console.error('Failed to delete stop:', err);
-    }
-  };
+  const handleAddActivityToSection = (sectionId: number) => {
+    setActivityError('');
+    if (!newActivityName.trim()) return;
 
-  const openAssignActivityModal = async (stop: any) => {
-    setSelectedStopId(stop.id);
-    setActivitiesLoading(true);
-    try {
-      const res = await activitiesApi.getSuggestions({ city_id: stop.city_id, limit: 15 });
-      setAvailableActivities(res.data);
-      if (res.data.length > 0) {
-        setSelectedActivityId(res.data[0].id);
-      } else {
-        setSelectedActivityId(null);
+    let targetDate = newActivityDate || trip?.start_date;
+
+    // Strict Date Bounds Validation (Must be strictly between trip.start_date and trip.end_date!)
+    if (trip?.start_date && trip?.end_date) {
+      if (targetDate < trip.start_date || targetDate > trip.end_date) {
+        setActivityError(`Activity date must be strictly within trip range (${trip.start_date} to ${trip.end_date}).`);
+        return;
       }
-    } catch (err) {
-      console.error('Failed to fetch catalog activities:', err);
-    } finally {
-      setActivitiesLoading(false);
     }
+
+    const updated = sections.map((sec) => {
+      if (sec.id === sectionId) {
+        return {
+          ...sec,
+          activities: [
+            ...sec.activities,
+            {
+              id: Date.now(),
+              name: newActivityName.trim(),
+              cost: Number(newActivityCost) || 0,
+              dateISO: targetDate,
+            },
+          ],
+        };
+      }
+      return sec;
+    });
+    setSections(updated);
+    setNewActivityName('');
+    setActivityError('');
   };
 
-  const handleAssignActivitySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedStopId || !selectedActivityId) return;
-    try {
-      const payload = {
-        activity_id: selectedActivityId,
-        cost_override: costOverride !== '' ? Number(costOverride) : null,
-      };
-      await itineraryApi.assignActivity(tripId, selectedStopId, payload);
-      setSelectedStopId(null);
-      fetchStops();
-    } catch (err) {
-      console.error('Failed to assign activity:', err);
-    }
+  const handleSaveSectionEdit = (updatedSec: ItinerarySection) => {
+    const updated = sections.map((s) => (s.id === updatedSec.id ? updatedSec : s));
+    setSections(updated);
+    setEditingSection(null);
   };
 
-  const handleRemoveActivity = async (stopId: number, activityItemId: number) => {
-    try {
-      await itineraryApi.removeActivity(tripId, stopId, activityItemId);
-      fetchStops();
-    } catch (err) {
-      console.error('Failed to remove activity:', err);
-    }
-  };
+  // Calculate total current calculated spend for this trip
+  const currentTotalCalculatedSpend = sections.reduce((acc, sec) => {
+    const actSum = sec.activities.reduce((a, act) => a + (Number(act.cost) || 0), 0);
+    return acc + (Number(sec.budget) || 0) + actSum;
+  }, 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-6 animate-scale-up">
-      {/* Screen 5 Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-xs">
-        <div>
-          <span className="px-3 py-1 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-full border border-blue-200">
-            Build Itinerary Screen (Screen 5)
-          </span>
-          <h1 className="text-2xl font-bold text-slate-900 mt-2">Trip Sections & Itinerary Builder</h1>
-          <p className="text-xs text-slate-500 font-medium">All necessary information about trip sections, travel, hotel stay, and activities.</p>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8 animate-scale-up pb-24 font-sans">
+      {/* Header Banner & Trip Selector */}
+      <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="px-3 py-1 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-full uppercase border border-emerald-200">
+              Build Itinerary Screen (Screen 5)
+            </span>
+
+            {/* Trip Selector Dropdown */}
+            {allUserTrips.length > 0 && (
+              <div className="relative">
+                <select
+                  value={activeTripId}
+                  onChange={(e) => setActiveTripId(Number(e.target.value))}
+                  className="bg-stone-50 border border-stone-200 rounded-xl pl-3 pr-8 py-1.5 text-xs text-stone-900 font-bold focus:outline-none focus:border-emerald-700 cursor-pointer appearance-none shadow-2xs"
+                >
+                  {allUserTrips.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.title} ({t.city_name})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-2.5 pointer-events-none" />
+              </div>
+            )}
+          </div>
+
+          <h1
+            className="text-2xl sm:text-3xl font-serif italic font-bold text-stone-900 pt-1"
+            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+          >
+            {trip?.title || 'Trip Itinerary Builder'}
+          </h1>
+          <p className="text-xs text-stone-500 font-medium flex flex-wrap items-center gap-2">
+            <span>Destination: <strong className="text-stone-800">{trip?.city_name || 'Global'}</strong></span>
+            <span>•</span>
+            <span>Trip Range: <strong className="text-stone-800">{trip?.start_date || 'TBD'} to {trip?.end_date || 'TBD'}</strong></span>
+            <span>•</span>
+            <span className="text-emerald-800 font-bold">Total Spend: ${currentTotalCalculatedSpend.toLocaleString()}</span>
+          </p>
         </div>
 
         <button
-          onClick={() => setShowAddStopModal(true)}
-          className="py-3 px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl text-xs flex items-center space-x-2 shadow-sm transition active:scale-[0.98]"
+          onClick={handleAddSection}
+          className="py-3 px-6 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-2xl text-xs flex items-center space-x-2 shadow-md transition active:scale-[0.98] flex-shrink-0"
         >
           <Plus className="w-4 h-4" />
-          <span>+ Add another Section</span>
+          <span>Add another Section</span>
         </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-slate-400 text-xs font-medium animate-pulse">
-          Loading itinerary sections...
+        <div className="text-center py-20 text-stone-400 text-xs font-medium animate-pulse">
+          Generating synchronized itinerary for {trip?.city_name || 'destination'}...
         </div>
       ) : (
         <div className="space-y-6">
-          {stops.map((stop, index) => {
-            const totalSectionActivitiesCost = (stop.activities || []).reduce((acc: number, ta: any) => acc + (ta.effective_cost || 0), 0);
-            const totalSectionBudget = (stop.stay_cost || 0) + totalSectionActivitiesCost;
+          {/* Wireframe (Screen 5) Section List */}
+          {sections.map((sec) => {
+            const isExpanded = expandedSectionId === sec.id;
+            const secActivitiesCost = sec.activities.reduce((acc, a) => acc + (Number(a.cost) || 0), 0);
+            const totalSecSpend = sec.budget + secActivitiesCost;
 
             return (
               <div
-                key={stop.id}
-                style={{ animationDelay: `${index * 0.1}s` }}
-                className="apple-card p-6 shadow-xs hover:shadow-md transition animate-fade-in space-y-5"
+                key={sec.id}
+                className="bg-white border-2 border-stone-200 hover:border-emerald-700/60 rounded-3xl p-6 sm:p-8 shadow-xs transition duration-300 space-y-4"
               >
-                {/* Section Header */}
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                {/* Section Title Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-stone-100 pb-3 gap-3">
                   <div className="flex items-center space-x-3">
-                    <span className="px-3 py-1 bg-blue-50 text-blue-600 font-extrabold text-xs rounded-xl border border-blue-200">
-                      Section {index + 1}:
+                    <span className="w-8 h-8 rounded-xl bg-emerald-800 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                      {sec.sectionNumber}
                     </span>
-                    <h3 className="text-lg font-bold text-slate-900">
-                      {stop.city?.name || 'Destination'}, {stop.city?.country || 'Region'}
-                    </h3>
+                    <h3 className="text-lg font-bold text-stone-900">{sec.title}</h3>
                   </div>
 
-                  <button
-                    onClick={() => handleDeleteStop(stop.id)}
-                    className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-slate-50 transition"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Section Details Paragraph */}
-                <div className="text-xs text-slate-600 leading-relaxed bg-slate-50/60 p-4 rounded-2xl border border-slate-100 font-medium">
-                  All the necessary information about this section. This includes travel details for {stop.city?.name || 'this stop'}, hotel stay budget, and scheduled activities.
-                </div>
-
-                {/* Scheduled Activities */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
-                      <Tag className="w-3.5 h-3.5 text-blue-500 mr-1" />
-                      <span>Activities & Events ({stop.activities?.length || 0})</span>
-                    </h4>
+                  <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => openAssignActivityModal(stop)}
-                      className="text-xs font-semibold text-blue-600 hover:text-blue-500 flex items-center space-x-1"
+                      onClick={() => setEditingSection(sec)}
+                      className="p-1.5 text-stone-400 hover:text-emerald-800 rounded-lg hover:bg-emerald-50 transition"
+                      title="Edit Section Info & Budget"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>+ Add Activity to Section</span>
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteSection(sec.id)}
+                      className="p-1.5 text-stone-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
+                      title="Remove Section"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => setExpandedSectionId(isExpanded ? null : sec.id)}
+                      className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 transition"
+                    >
+                      {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                     </button>
                   </div>
+                </div>
 
-                  {stop.activities?.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {stop.activities.map((ta: any) => (
-                        <div
-                          key={ta.id}
-                          className="bg-white border border-slate-200 rounded-2xl p-3.5 flex items-center justify-between hover:border-blue-200 transition"
-                        >
-                          <div className="space-y-0.5">
-                            <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-50 text-blue-600 rounded-md">
-                              {ta.activity?.category}
-                            </span>
-                            <h5 className="text-xs font-bold text-slate-900 mt-1">{ta.activity?.name}</h5>
-                            <p className="text-[11px] text-slate-500 font-medium">
-                              Cost: <span className="text-slate-900 font-bold">${ta.effective_cost}</span>
-                            </p>
-                          </div>
+                {/* Section Description / Info Box */}
+                <p className="text-xs text-stone-600 leading-relaxed font-medium bg-stone-50/70 p-4 rounded-2xl border border-stone-100">
+                  {sec.description}
+                </p>
 
-                          <button
-                            onClick={() => handleRemoveActivity(stop.id, ta.id)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-slate-50"
+                {/* Date Range & Budget Badges */}
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <div className="py-2 px-4 bg-stone-100 border border-stone-200 text-stone-800 rounded-2xl text-xs font-bold flex items-center space-x-2">
+                    <Calendar className="w-3.5 h-3.5 text-emerald-800" />
+                    <span>Date Range: {sec.startDate} to {sec.endDate}</span>
+                  </div>
+
+                  <div className="py-2 px-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl text-xs font-bold flex items-center space-x-2">
+                    <DollarSign className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Budget of this section: ${totalSecSpend.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* Expandable Itemized Activities with Restricted Date Picker */}
+                {isExpanded && (
+                  <div className="pt-4 border-t border-stone-100 space-y-3 animate-fade-in">
+                    <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider flex items-center space-x-2">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-800" />
+                      <span>Itemized Section Activities with Scheduled Dates ({sec.activities.length})</span>
+                    </h4>
+
+                    {activityError && (
+                      <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center space-x-2">
+                        <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                        <span>{activityError}</span>
+                      </div>
+                    )}
+
+                    {sec.activities.length > 0 ? (
+                      <div className="space-y-2">
+                        {sec.activities.map((act) => (
+                          <div
+                            key={act.id}
+                            className="p-3 bg-stone-50 border border-stone-200 rounded-xl flex items-center justify-between text-xs font-semibold"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="bg-white border border-slate-200/60 rounded-2xl p-3.5 text-xs text-slate-400 italic">
-                      No activities assigned to this section yet.
-                    </div>
-                  )}
-                </div>
+                            <div className="space-y-0.5">
+                              <span className="text-stone-900 font-bold block">• {act.name}</span>
+                              <span className="text-[10px] text-stone-500 font-medium">Scheduled Date: {act.dateISO || trip?.start_date}</span>
+                            </div>
+                            <span className="text-emerald-800 font-black">${act.cost}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-stone-400 italic">No line-item activities scheduled in this section yet.</p>
+                    )}
 
-                {/* Wireframe Control Buttons Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
-                  <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-700 flex items-center space-x-2">
-                    <Calendar className="w-4 h-4 text-teal-600 flex-shrink-0" />
-                    <span>Date Range: <strong className="text-slate-900">{stop.arrival_date || 'TBD'} to {stop.departure_date || 'TBD'}</strong></span>
+                    {/* Add Activity Input with STRICT MIN/MAX RESTRICTED DATE PICKER */}
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2">
+                      <input
+                        type="text"
+                        placeholder="Activity name (e.g. Cable Car Sightseeing Tour)..."
+                        value={newActivityName}
+                        onChange={(e) => setNewActivityName(e.target.value)}
+                        className="sm:col-span-2 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
+                      />
+                      <input
+                        type="date"
+                        min={trip?.start_date || undefined}
+                        max={trip?.end_date || undefined}
+                        value={newActivityDate}
+                        onChange={(e) => setNewActivityDate(e.target.value)}
+                        className="bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700 font-semibold cursor-pointer"
+                        title={`Select date within trip range (${trip?.start_date} to ${trip?.end_date})`}
+                      />
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="Cost $"
+                          value={newActivityCost}
+                          onChange={(e) => setNewActivityCost(Number(e.target.value))}
+                          className="w-20 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
+                        />
+                        <button
+                          onClick={() => handleAddActivityToSection(sec.id)}
+                          className="px-4 py-2 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center space-x-1 flex-1 justify-center"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-
-                  <div className="bg-blue-50/80 border border-blue-200 rounded-2xl px-4 py-3 text-xs font-semibold text-blue-700 flex items-center justify-between">
-                    <span className="flex items-center">
-                      <DollarSign className="w-4 h-4 text-blue-600 mr-1 flex-shrink-0" />
-                      Budget of this section:
-                    </span>
-                    <span className="text-blue-950 font-extrabold text-sm">${totalSectionBudget.toLocaleString()}</span>
-                  </div>
-                </div>
+                )}
               </div>
             );
           })}
 
-          {/* Bottom Add Section Button */}
-          <div className="text-center pt-4">
-            <button
-              onClick={() => setShowAddStopModal(true)}
-              className="py-3.5 px-8 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl text-xs inline-flex items-center space-x-2 shadow-md transition active:scale-[0.98]"
-            >
-              <Plus className="w-4 h-4" />
-              <span>+ Add another Section</span>
-            </button>
-          </div>
+          {/* Large Bottom Wireframe Button: [+ Add another Section] */}
+          <button
+            onClick={handleAddSection}
+            className="w-full py-4 bg-white hover:bg-emerald-50 border-2 border-dashed border-stone-300 hover:border-emerald-700 text-stone-700 hover:text-emerald-800 font-bold text-sm rounded-3xl transition flex items-center justify-center space-x-2 shadow-2xs"
+          >
+            <Plus className="w-5 h-5 text-emerald-800" />
+            <span>Add another Section</span>
+          </button>
         </div>
       )}
 
-      {/* Add Section Modal */}
-      {showAddStopModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-900">Add another Section</h3>
-            <form onSubmit={handleAddStopSubmit} className="space-y-4">
+      {/* Edit Section Modal */}
+      {editingSection && (
+        <div className="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 bg-stone-950/75 backdrop-blur-md overflow-hidden font-sans">
+          <div className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative my-auto">
+            <h3 className="text-base font-bold text-stone-900 border-b border-stone-100 pb-2">
+              Edit {editingSection.title}
+            </h3>
+
+            <div className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Select Destination City</label>
-                <div className="relative">
-                  <select
-                    value={selectedCityId}
-                    onChange={(e) => setSelectedCityId(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer"
-                  >
-                    {cities.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}, {c.country} ({c.region})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+                <label className="block text-xs font-semibold text-stone-700 mb-1">Section Title</label>
+                <input
+                  type="text"
+                  value={editingSection.title}
+                  onChange={(e) => setEditingSection({ ...editingSection, title: e.target.value })}
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-emerald-700"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">Section Information & Notes</label>
+                <textarea
+                  rows={3}
+                  value={editingSection.description}
+                  onChange={(e) => setEditingSection({ ...editingSection, description: e.target.value })}
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-xs focus:outline-none focus:border-emerald-700"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-stone-700 mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    min={trip?.start_date || undefined}
+                    max={trip?.end_date || undefined}
+                    value={editingSection.startDate}
+                    onChange={(e) => setEditingSection({ ...editingSection, startDate: e.target.value })}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-stone-700 mb-1">End Date</label>
+                  <input
+                    type="date"
+                    min={trip?.start_date || undefined}
+                    max={trip?.end_date || undefined}
+                    value={editingSection.endDate}
+                    onChange={(e) => setEditingSection({ ...editingSection, endDate: e.target.value })}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
+                  />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Stay / Accommodation Cost ($ USD)</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">Section Budget ($ USD)</label>
                 <input
                   type="number"
                   min="0"
-                  value={stayCost}
-                  onChange={(e) => setStayCost(Number(e.target.value))}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                  value={editingSection.budget}
+                  onChange={(e) => setEditingSection({ ...editingSection, budget: Number(e.target.value) })}
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
                 />
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Arrival Date</label>
-                  <input
-                    type="date"
-                    value={arrivalDate}
-                    onChange={(e) => {
-                      setArrivalDate(e.target.value);
-                      if (departureDate && e.target.value > departureDate) setDepartureDate(e.target.value);
-                    }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Departure Date</label>
-                  <input
-                    type="date"
-                    min={arrivalDate || undefined}
-                    value={departureDate}
-                    onChange={(e) => setDepartureDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAddStopModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-600 text-xs font-semibold rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl shadow-sm">
-                  Add Section
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Assign Activity Modal */}
-      {selectedStopId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-900">Assign Activity to Section</h3>
-            <form onSubmit={handleAssignActivitySubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Select Activity</label>
-                {activitiesLoading ? (
-                  <div className="text-xs text-slate-400 py-3 text-center animate-pulse">Loading catalog activities...</div>
-                ) : availableActivities.length > 0 ? (
-                  <div className="relative">
-                    <select
-                      value={selectedActivityId || ''}
-                      onChange={(e) => setSelectedActivityId(Number(e.target.value))}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer shadow-none"
-                    >
-                      {availableActivities.map((act) => (
-                        <option key={act.id} value={act.id}>
-                          {act.name} (${act.estimated_cost}) • {act.category}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-                  </div>
-                ) : (
-                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 italic">
-                    No catalog activities found for this city. Try assigning an activity from the Catalog search page.
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Cost Override (Optional)</label>
-                <input
-                  type="number"
-                  placeholder="Leave empty to use catalog price"
-                  value={costOverride}
-                  onChange={(e) => setCostOverride(e.target.value === '' ? '' : Number(e.target.value))}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setSelectedStopId(null)}
-                  className="px-4 py-2 bg-slate-100 text-slate-600 text-xs font-semibold rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!selectedActivityId}
-                  className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl shadow-sm disabled:opacity-50"
-                >
-                  Assign to Section
-                </button>
-              </div>
-            </form>
+            <div className="flex justify-end space-x-2 pt-2 border-t border-stone-100">
+              <button
+                onClick={() => setEditingSection(null)}
+                className="px-4 py-2 bg-stone-100 text-stone-600 text-xs font-semibold rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleSaveSectionEdit(editingSection)}
+                className="px-5 py-2 bg-emerald-800 text-white text-xs font-bold rounded-xl flex items-center space-x-1"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Save Section</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

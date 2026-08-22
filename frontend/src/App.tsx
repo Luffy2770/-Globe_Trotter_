@@ -9,6 +9,7 @@ import { BudgetAnalyticsPage } from './pages/BudgetAnalyticsPage';
 import { AnalyticsDashboardPage } from './pages/AnalyticsDashboardPage';
 import { CalendarPlannerPage } from './pages/CalendarPlannerPage';
 import { CreateTripModal } from './pages/CreateTripModal';
+import { tripsApi } from './services/api';
 
 export function App() {
   const [user, setUser] = useState<any>(() => {
@@ -18,19 +19,26 @@ export function App() {
 
   const [activeTab, setActiveTab] = useState<string>('explore');
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
+  const [defaultTripId, setDefaultTripId] = useState<number | null>(null);
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [modalCityId, setModalCityId] = useState<number | null>(null);
-
   const [tripRefreshCounter, setTripRefreshCounter] = useState<number>(0);
 
   useEffect(() => {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
+      tripsApi.getTripsListing({}).then((res) => {
+        const all = [...(res.data.ongoing || []), ...(res.data.upcoming || []), ...(res.data.completed || [])];
+        if (all.length > 0) {
+          setDefaultTripId(all[0].id);
+        }
+      });
     } else {
       localStorage.removeItem('user');
       localStorage.removeItem('access_token');
     }
-  }, [user]);
+  }, [user, tripRefreshCounter]);
 
   const handleLoginSuccess = (userData: any, token: string) => {
     localStorage.setItem('access_token', token);
@@ -70,6 +78,8 @@ export function App() {
     return <AuthPage onLoginSuccess={handleLoginSuccess} />;
   }
 
+  const activeItineraryTripId = selectedTripId || defaultTripId || 1;
+
   return (
     <div className="min-h-screen bg-[#f6f7f5] text-slate-900 font-sans">
       <Navbar
@@ -108,8 +118,8 @@ export function App() {
           />
         )}
 
-        {activeTab === 'itinerary' && selectedTripId && (
-          <ItineraryBuilderPage tripId={selectedTripId} />
+        {activeTab === 'itinerary' && (
+          <ItineraryBuilderPage tripId={activeItineraryTripId} />
         )}
 
         {activeTab === 'budget' && selectedTripId && (
