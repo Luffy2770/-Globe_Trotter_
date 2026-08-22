@@ -44,88 +44,87 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const renderTripCard = (trip: any) => (
     <div
       key={trip.id}
-      className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-emerald-500/50 shadow-lg transition flex flex-col justify-between"
+      className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs hover:shadow-lg transition duration-250 flex flex-col justify-between"
     >
       <div>
         <div className="flex items-center justify-between mb-3">
           <span
-            className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${
+            className={`px-3 py-1 text-[11px] font-bold rounded-full uppercase tracking-wider ${
               trip.status === 'ongoing'
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                ? 'bg-blue-50 text-blue-600 border border-blue-200'
                 : trip.status === 'upcoming'
-                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                : 'bg-slate-800 text-slate-400 border border-slate-700'
+                ? 'bg-amber-50 text-amber-600 border border-amber-200'
+                : 'bg-slate-100 text-slate-500 border border-slate-200'
             }`}
           >
             {trip.status}
           </span>
-          <span className="text-xs text-slate-400 flex items-center space-x-1">
+          <span className="text-xs text-slate-400 font-medium flex items-center space-x-1">
             <Clock className="w-3.5 h-3.5" />
             <span>{trip.duration_days} Days</span>
           </span>
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{trip.title}</h3>
-        <p className="text-xs text-slate-400 mb-4 line-clamp-2">{trip.description || 'No description provided.'}</p>
+        <h3 className="text-lg font-bold text-slate-900 mb-1 line-clamp-1">{trip.title}</h3>
+        <p className="text-xs text-slate-500 mb-4 line-clamp-2">{trip.description || 'Personalized trip itinerary.'}</p>
 
         <div className="space-y-2 mb-4">
-          <div className="flex items-center text-xs text-slate-300">
-            <MapPin className="w-4 h-4 text-emerald-400 mr-2" />
-            <span>{trip.city_name || 'Multi-City Destination'} ({trip.stops_count} Stops)</span>
+          <div className="flex items-center text-xs text-slate-600 font-medium">
+            <MapPin className="w-3.5 h-3.5 text-blue-500 mr-2" />
+            <span>{trip.city_name || 'Destination'} ({trip.stops_count} Stops)</span>
           </div>
 
-          <div className="flex items-center text-xs text-slate-300">
-            <Calendar className="w-4 h-4 text-teal-400 mr-2" />
+          <div className="flex items-center text-xs text-slate-600 font-medium">
+            <Calendar className="w-3.5 h-3.5 text-teal-500 mr-2" />
             <span>{trip.start_date || 'TBD'} → {trip.end_date || 'TBD'}</span>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-slate-800/80">
-            <span className="flex items-center text-slate-400">
-              <DollarSign className="w-3.5 h-3.5 text-emerald-400 mr-1" /> Target Budget:
+          <div className="flex items-center justify-between text-xs text-slate-600 pt-3 border-t border-slate-100 font-semibold">
+            <span className="text-slate-400 flex items-center">
+              <DollarSign className="w-3.5 h-3.5 text-slate-400 mr-0.5" /> Target Budget:
             </span>
-            <span className="font-bold text-emerald-400">${trip.total_budget.toLocaleString()}</span>
+            <span className="text-slate-900">${trip.total_budget.toLocaleString()}</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-800">
+      <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100">
         <button
           onClick={() => onSelectTripForItinerary(trip.id)}
-          className="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition"
+          className="py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-2xl border border-slate-200 transition"
         >
-          Itinerary Builder
+          Itinerary
         </button>
         <button
           onClick={() => onSelectTripForBudget(trip.id)}
-          className="py-2 px-3 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 text-xs font-semibold rounded-xl transition"
+          className="py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/80 text-xs font-semibold rounded-2xl transition"
         >
-          Budget Analytics
+          Budget
         </button>
       </div>
     </div>
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
       {dashboardData?.banner && (
-        <div className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-10" />
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-xl">
           <img
             src={dashboardData.banner.image_url}
             alt="Hero Banner"
-            className="w-full h-64 object-cover object-center opacity-40"
+            className="w-full h-56 object-cover object-center opacity-30 mix-blend-overlay"
           />
-          <div className="absolute inset-0 z-20 p-8 flex flex-col justify-center max-w-2xl space-y-3">
-            <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold rounded-full w-fit">
-              Screen 3 & 6: Landing & Dashboard
+          <div className="absolute inset-0 p-8 flex flex-col justify-center max-w-xl space-y-2">
+            <span className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-[11px] font-bold rounded-full w-fit">
+              Explore & Plan
             </span>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+            <h1 className="text-3xl font-extrabold tracking-tight">
               {dashboardData.banner.title}
             </h1>
-            <p className="text-sm text-slate-300">{dashboardData.banner.subtitle}</p>
+            <p className="text-xs text-slate-300 font-medium leading-relaxed">{dashboardData.banner.subtitle}</p>
             <button
               onClick={onOpenCreateModal}
-              className="w-fit mt-2 py-2.5 px-5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl flex items-center space-x-2 shadow-lg transition"
+              className="w-fit mt-3 py-2.5 px-5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-2xl flex items-center space-x-2 shadow-md transition active:scale-[0.98]"
             >
               <PlusCircle className="w-4 h-4" />
               <span>+ Plan a New Trip</span>
@@ -136,41 +135,38 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
       {dashboardData?.top_regional_selections?.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-white flex items-center space-x-2">
-            <Compass className="w-5 h-5 text-emerald-400" />
-            <span>Top Regional Selections</span>
+          <h2 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+            <Compass className="w-4 h-4 text-blue-600" />
+            <span>Top Destinations</span>
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {dashboardData.top_regional_selections.map((city: any) => (
               <div
                 key={city.id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-3 hover:border-emerald-500/40 transition group cursor-pointer"
+                className="bg-white border border-slate-200/80 rounded-2xl p-3 shadow-xs hover:shadow-md transition cursor-pointer group"
               >
                 <img
                   src={city.image_url}
                   alt={city.name}
-                  className="w-full h-24 object-cover rounded-xl mb-2 group-hover:scale-105 transition duration-300"
+                  className="w-full h-24 object-cover rounded-xl mb-2 group-hover:scale-[1.02] transition"
                 />
-                <h4 className="text-sm font-bold text-white">{city.name}</h4>
-                <p className="text-xs text-slate-400">{city.country} • {city.region}</p>
-                <div className="flex items-center justify-between text-xs text-amber-400 mt-2 font-semibold">
-                  <span>Rating: {city.popularity_rating}</span>
-                </div>
+                <h4 className="text-xs font-bold text-slate-900">{city.name}</h4>
+                <p className="text-[11px] text-slate-400 font-medium">{city.country}</p>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
           <input
             type="text"
-            placeholder="Search bar...... (Search trip name, destination city, or description)"
+            placeholder="Search trip name, destination city..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white"
           />
         </div>
 
@@ -178,9 +174,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500"
           >
-            <option value="">Group by / All Statuses</option>
+            <option value="">All Statuses</option>
             <option value="ongoing">Ongoing</option>
             <option value="upcoming">Up-coming</option>
             <option value="completed">Completed</option>
@@ -189,24 +185,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500"
           >
-            <option value="created_at">Sort by: Recent</option>
-            <option value="start_date_asc">Sort by: Start Date (Asc)</option>
-            <option value="title">Sort by: Title</option>
-            <option value="budget">Sort by: Budget</option>
+            <option value="created_at">Sort: Recent</option>
+            <option value="start_date_asc">Sort: Start Date</option>
+            <option value="title">Sort: Title</option>
+            <option value="budget">Sort: Budget</option>
           </select>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-slate-400">Loading trip itinerary data...</div>
+        <div className="text-center py-12 text-slate-400 text-xs font-medium">Loading trips...</div>
       ) : (
         <div className="space-y-8">
           {(!statusFilter || statusFilter === 'ongoing') && (
             <div className="space-y-3">
-              <h3 className="text-lg font-bold text-emerald-400 flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
                 <span>Ongoing Trips</span>
               </h3>
               {tripsGrouped?.ongoing?.length > 0 ? (
@@ -214,8 +210,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   {tripsGrouped.ongoing.map(renderTripCard)}
                 </div>
               ) : (
-                <div className="bg-slate-900/50 border border-slate-800/80 rounded-xl p-4 text-xs text-slate-500">
-                  No active ongoing trips currently.
+                <div className="bg-white border border-slate-200/60 rounded-2xl p-4 text-xs text-slate-400 italic">
+                  No active ongoing trips.
                 </div>
               )}
             </div>
@@ -223,8 +219,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
           {(!statusFilter || statusFilter === 'upcoming') && (
             <div className="space-y-3">
-              <h3 className="text-lg font-bold text-amber-400 flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
                 <span>Up-coming Trips</span>
               </h3>
               {tripsGrouped?.upcoming?.length > 0 ? (
@@ -232,8 +228,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   {tripsGrouped.upcoming.map(renderTripCard)}
                 </div>
               ) : (
-                <div className="bg-slate-900/50 border border-slate-800/80 rounded-xl p-4 text-xs text-slate-500">
-                  No upcoming trips scheduled.
+                <div className="bg-white border border-slate-200/60 rounded-2xl p-4 text-xs text-slate-400 italic">
+                  No upcoming trips.
                 </div>
               )}
             </div>
@@ -241,8 +237,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
           {(!statusFilter || statusFilter === 'completed') && (
             <div className="space-y-3">
-              <h3 className="text-lg font-bold text-slate-300 flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-slate-500" />
+              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                <span className="w-2 h-2 rounded-full bg-slate-400" />
                 <span>Completed Trips</span>
               </h3>
               {tripsGrouped?.completed?.length > 0 ? (
@@ -250,7 +246,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   {tripsGrouped.completed.map(renderTripCard)}
                 </div>
               ) : (
-                <div className="bg-slate-900/50 border border-slate-800/80 rounded-xl p-4 text-xs text-slate-500">
+                <div className="bg-white border border-slate-200/60 rounded-2xl p-4 text-xs text-slate-400 italic">
                   No past completed trips.
                 </div>
               )}
