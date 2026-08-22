@@ -59,3 +59,20 @@ export const itineraryApi = {
   removeActivity: (tripId: number, stopId: number, activityItemId: number) => api.delete(`/trips/${tripId}/stops/${stopId}/activities/${activityItemId}`),
   getBudget: (tripId: number) => api.get(`/trips/${tripId}/budget`),
 };
+
+export const invitesApi = {
+  inviteUser: (tripId: number, payload: { username: string; role: string }) => api.post(`/invites/trips/${tripId}`, payload),
+  getMembers: (tripId: number) => api.get(`/invites/trips/${tripId}`),
+  removeMember: (tripId: number, inviteId: number) => api.delete(`/invites/trips/${tripId}/${inviteId}`),
+  getInbox: () => api.get('/invites/inbox'),
+  respondToInvite: (inviteId: number, payload: { action: 'accept' | 'decline' }) => api.post(`/invites/${inviteId}/respond`, payload),
+};
+
+export const communityApi = {
+  getPosts: (params?: any) => api.get('/community/posts', { params }),
+  publishPost: (payload: any) => api.post('/community/posts', payload),
+  toggleLike: (postId: number) => api.post(`/community/posts/${postId}/like`),
+  getComments: (postId: number) => api.get(`/community/posts/${postId}/comments`),
+  addComment: (postId: number, payload: { content: string }) => api.post(`/community/posts/${postId}/comments`, payload),
+  clonePost: (postId: number) => api.post(`/community/posts/${postId}/clone`),
+};

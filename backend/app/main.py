@@ -11,6 +11,8 @@ from app.api.itinerary import router as itinerary_router
 from app.api.trip_listing import router as trip_listing_router
 from app.api.profile import router as profile_router
 from app.api.catalog_search import router as catalog_search_router
+from app.api.invites import router as invites_router
+from app.api.community import router as community_router
 from seed import seed_database
 
 Base.metadata.create_all(bind=engine)
@@ -44,6 +46,8 @@ app.include_router(itinerary_router, prefix="/api")
 app.include_router(trip_listing_router, prefix="/api")
 app.include_router(profile_router, prefix="/api")
 app.include_router(catalog_search_router, prefix="/api")
+app.include_router(invites_router, prefix="/api")
+app.include_router(community_router, prefix="/api")
 
 @app.get("/")
 def root():

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { authApi } from '../services/api';
 import { TripyfyLogo } from '../components/TripyfyLogo';
-import { User, Lock, Mail, Phone, MapPin, Sparkles } from 'lucide-react';
+import { User, Lock, Mail, Phone, MapPin } from 'lucide-react';
 
 interface AuthPageProps {
   onLoginSuccess: (user: any, token: string) => void;
@@ -66,32 +66,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const res = await authApi.login({ username_or_email: 'luffy', password: 'password123' });
-      onLoginSuccess(res.data.user, res.data.access_token);
-    } catch (err: any) {
-      console.error('Luffy demo login failed, trying default demo login:', err);
-      try {
-        const demoRes = await authApi.demoLogin();
-        onLoginSuccess(demoRes.data.user, demoRes.data.access_token);
-      } catch (e) {
-        setError('Demo login is temporarily unavailable.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-stone-900 flex items-center justify-center p-6 relative overflow-hidden font-sans">
       <div className="absolute inset-0 bg-gradient-to-tr from-emerald-950 via-stone-900 to-zinc-950 opacity-95" />
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl" />
       <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl" />
 
-      <div className="relative z-10 w-full max-w-xl bg-white border border-stone-200/90 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-6 animate-scale-up">
+      <div className="relative z-10 w-full max-w-md bg-white border border-stone-200/90 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-6 animate-scale-up">
         {/* Header Logo */}
         <div className="flex flex-col items-center text-center space-y-2 pb-2">
           <TripyfyLogo size="lg" showText={true} />
@@ -152,15 +133,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
               className="w-full py-3 bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition active:scale-[0.98] disabled:opacity-50"
             >
               {loading ? 'Signing In...' : 'Login to Tripyfy'}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              className="w-full py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs rounded-xl border border-stone-200 transition flex items-center justify-center space-x-1.5"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>1-Click Demo Login (Luffy's Account)</span>
             </button>
 
             <div className="text-center pt-2">

@@ -5,6 +5,8 @@ from app.models.trip import Trip
 from app.models.activity import Activity
 from app.models.trip_stop import TripStop
 from app.models.trip_activity import TripActivity
+from app.models.trip_invite import TripInvite
+from app.models.community import CommunityPost, PostLike, PostComment
 from app.core.security import get_password_hash
 from datetime import date, timedelta
 
@@ -48,8 +50,9 @@ def seed_database():
             ("Mexico City", "Mexico", "Americas", 1.6, 4.8, "Zocalo square, Frida Kahlo Museum, and ancient Teotihuacan pyramids.", "https://images.unsplash.com/photo-1518659267384-51103b812ae0?w=800"),
             ("Buenos Aires", "Argentina", "Americas", 1.5, 4.8, "Tango dancing in La Boca, Recoleta district, and Argentine steak.", "https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=800"),
 
-            # Middle East
+            # Middle East & Africa
             ("Dubai", "UAE", "Middle East", 2.9, 4.8, "Burj Khalifa, Palm Jumeirah, and desert safaris.", "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800"),
+            ("Cape Town", "South Africa", "Africa", 1.8, 4.9, "Table Mountain, Camps Bay beaches, and scenic coastal drives.", "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=800"),
         ]
 
         for i, (name, country, region, cost, rating, desc, img) in enumerate(raw_destinations, 1):
@@ -86,23 +89,85 @@ def seed_database():
 
         db.flush()
 
-        # Seed Luffy User Account
-        luffy_user = db.query(User).filter(User.username == "luffy").first()
-        if not luffy_user:
-            luffy_user = User(
-                username="luffy",
-                email="luffy@tripyfy.com",
-                password_hash=get_password_hash("password123"),
-                first_name="Luffy",
-                last_name="Monkey",
-                city="Tokyo",
-                country="Japan",
-                photo_url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400",
-                additional_info="World traveler exploring iconic cities across the seven seas."
-            )
-            db.add(luffy_user)
-            db.flush()
+        # Seed Users (Luffy + Zoro + Nami + Sanji)
+        users_to_seed = [
+            {
+                "username": "luffy",
+                "email": "luffy@tripyfy.com",
+                "password": "password123",
+                "first_name": "Luffy",
+                "last_name": "Monkey",
+                "city": "Tokyo",
+                "country": "Japan",
+                "photo_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400",
+                "additional_info": "World traveler exploring iconic cities across the seven seas. 🌊✈️"
+            },
+            {
+                "username": "zoro",
+                "email": "zoro@tripyfy.com",
+                "password": "password123",
+                "first_name": "Roronoa",
+                "last_name": "Zoro",
+                "city": "Kyoto",
+                "country": "Japan",
+                "photo_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+                "additional_info": "Master swordsman looking for the best mountain hiking trails."
+            },
+            {
+                "username": "nami",
+                "email": "nami@tripyfy.com",
+                "password": "password123",
+                "first_name": "Nami",
+                "last_name": "Navigator",
+                "city": "Paris",
+                "country": "France",
+                "photo_url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
+                "additional_info": "Expert weather cartographer managing luxury travel budgets & flight routes."
+            },
+            {
+                "username": "sanji",
+                "email": "sanji@tripyfy.com",
+                "password": "password123",
+                "first_name": "Vinsmoke",
+                "last_name": "Sanji",
+                "city": "Rome",
+                "country": "Italy",
+                "photo_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400",
+                "additional_info": "Culinary chef on a quest to taste world-class Mediterranean street food."
+            }
+        ]
 
+        seeded_user_map = {}
+        for u in users_to_seed:
+            user_obj = db.query(User).filter(User.username == u["username"]).first()
+            if not user_obj:
+                user_obj = User(
+                    username=u["username"],
+                    email=u["email"],
+                    password_hash=get_password_hash(u["password"]),
+                    first_name=u["first_name"],
+                    last_name=u["last_name"],
+                    city=u["city"],
+                    country=u["country"],
+                    photo_url=u["photo_url"],
+                    additional_info=u["additional_info"]
+                )
+                db.add(user_obj)
+            else:
+                user_obj.password_hash = get_password_hash(u["password"])
+                user_obj.first_name = u["first_name"]
+                user_obj.last_name = u["last_name"]
+                user_obj.city = u["city"]
+                user_obj.country = u["country"]
+                user_obj.photo_url = u["photo_url"]
+                user_obj.additional_info = u["additional_info"]
+            db.flush()
+            seeded_user_map[u["username"]] = user_obj
+
+        luffy_user = seeded_user_map["luffy"]
+        zoro_user = seeded_user_map["zoro"]
+        nami_user = seeded_user_map["nami"]
+        sanji_user = seeded_user_map["sanji"]
         today = date.today()
 
         # Completely NON-OVERLAPPING trip date ranges!
@@ -196,6 +261,73 @@ def seed_database():
             )
             db.add(t3)
             db.flush()
+
+        # Seed Community Travel Plans
+        community_posts_seed = [
+            {
+                "user_id": zoro_user.id,
+                "title": "7-Day Ultimate Kyoto & Bamboo Forest Trek",
+                "description": "A samurai-inspired nature and temple hiking route through Arashiyama bamboo groves, Fushimi Inari torii gates, and traditional matcha tea houses in Gion.",
+                "city_name": "Kyoto",
+                "cover_image_url": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800",
+                "duration_days": 7,
+                "estimated_budget": 1650.0,
+                "tags": "Nature, Trekking, Culture, Solo",
+                "likes_count": 42,
+                "clones_count": 18
+            },
+            {
+                "user_id": nami_user.id,
+                "title": "5-Day Luxury Parisian Art & Rooftop Sunset Tour",
+                "description": "Curated VIP access into the Louvre Museum, private sunset champagne toasts on top of the Eiffel Tower, and charming Montmartre cafe crawls.",
+                "city_name": "Paris",
+                "cover_image_url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800",
+                "duration_days": 5,
+                "estimated_budget": 2800.0,
+                "tags": "Luxury, Art, Romantic, Foodie",
+                "likes_count": 59,
+                "clones_count": 27
+            },
+            {
+                "user_id": sanji_user.id,
+                "title": "4-Day Roman Street Food & Colosseum Night Walk",
+                "description": "Foodie dream itinerary tasting authentic Carbonara, Travestere wine bars, and night exploration around the lit-up ancient Roman Colosseum and Trevi fountain.",
+                "city_name": "Rome",
+                "cover_image_url": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800",
+                "duration_days": 4,
+                "estimated_budget": 1150.0,
+                "tags": "Food & Wine, History, Budget, Nightlife",
+                "likes_count": 36,
+                "clones_count": 14
+            },
+            {
+                "user_id": luffy_user.id,
+                "title": "6-Day Cape Town Mountain Peak & Coastal Adventure",
+                "description": "Cable car ride to Table Mountain summit, Penguin colony walk at Boulders Beach, and seafood BBQ sunsets overlooking Camps Bay.",
+                "city_name": "Cape Town",
+                "cover_image_url": "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=800",
+                "duration_days": 6,
+                "estimated_budget": 1400.0,
+                "tags": "Backpacking, Adventure, Nature, Beaches",
+                "likes_count": 78,
+                "clones_count": 35
+            }
+        ]
+
+        for cp in community_posts_seed:
+            existing_post = db.query(CommunityPost).filter(CommunityPost.title == cp["title"]).first()
+            if not existing_post:
+                new_cp = CommunityPost(**cp)
+                db.add(new_cp)
+                db.flush()
+
+                # Add sample comment
+                c1 = PostComment(
+                    post_id=new_cp.id,
+                    user_id=nami_user.id if cp["user_id"] != nami_user.id else zoro_user.id,
+                    content="Cloned this plan for my next trip! The recommended stops are super well paced."
+                )
+                db.add(c1)
 
         db.commit()
     finally:

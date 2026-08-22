@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { AuthPage } from './pages/AuthPage';
 import { Navbar } from './components/Navbar';
 import { ExploreCitiesPage } from './pages/ExploreCitiesPage';
+import { CommunityPage } from './pages/CommunityPage';
 import { MyTripsPage } from './pages/MyTripsPage';
 import { ProfilePreferencesPage } from './pages/ProfilePreferencesPage';
 import { ItineraryBuilderPage } from './pages/ItineraryBuilderPage';
@@ -88,11 +89,22 @@ export function App() {
         setActiveTab={setActiveTab}
         onLogout={handleLogout}
         onOpenCreateModal={() => handleOpenCreateModalWithCity()}
+        onTripDataChanged={() => setTripRefreshCounter((prev) => prev + 1)}
       />
 
       <main className="pb-16">
         {activeTab === 'explore' && (
           <ExploreCitiesPage onOpenCreateModalWithCity={handleOpenCreateModalWithCity} />
+        )}
+
+        {activeTab === 'community' && (
+          <CommunityPage
+            currentUser={user}
+            onTripCloned={(tripId) => {
+              setTripRefreshCounter((prev) => prev + 1);
+              handleSelectTripForItinerary(tripId);
+            }}
+          />
         )}
 
         {activeTab === 'trips' && (

@@ -7,6 +7,7 @@ from app.db.session import get_db
 from app.models.trip import Trip
 from app.models.trip_stop import TripStop
 from app.models.trip_activity import TripActivity
+from app.models.trip_invite import TripInvite
 from app.models.user import User
 from app.schemas.trip_listing import (
     TripOverviewCard,
@@ -76,9 +77,22 @@ def get_user_trip_listing(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    # Include owned trips + trips where current_user is an accepted companion
+    accepted_trip_ids = [
+        inv.trip_id for inv in db.query(TripInvite.trip_id).filter(
+            TripInvite.invitee_id == current_user.id,
+            TripInvite.status == "accepted"
+        ).all()
+    ]
+
     query = db.query(Trip).options(
         selectinload(Trip.stops).selectinload(TripStop.activities).selectinload(TripActivity.activity)
-    ).filter(Trip.user_id == current_user.id)
+    ).filter(
+        or_(
+            Trip.user_id == current_user.id,
+            Trip.id.in_(accepted_trip_ids)
+        )
+    )
 
     if q:
         search_pattern = f"%{q.strip()}%"
@@ -138,9 +152,22 @@ def get_trip_overview(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    accepted_trip_ids = [
+        inv.trip_id for inv in db.query(TripInvite.trip_id).filter(
+            TripInvite.invitee_id == current_user.id,
+            TripInvite.status == "accepted"
+        ).all()
+    ]
+
     trip = db.query(Trip).options(
         selectinload(Trip.stops).selectinload(TripStop.activities).selectinload(TripActivity.activity)
-    ).filter(Trip.id == trip_id, Trip.user_id == current_user.id).first()
+    ).filter(
+        Trip.id == trip_id,
+        or_(
+            Trip.user_id == current_user.id,
+            Trip.id.in_(accepted_trip_ids)
+        )
+    ).first()
 
     if not trip:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found.")
