@@ -14,9 +14,13 @@ class Trip(Base):
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
     total_budget = Column(Float, default=0.0)
+    city_id = Column(Integer, ForeignKey("cities.id", ondelete="SET NULL"), nullable=True)
+    city_name = Column(String(100), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
 
     user = relationship("User", backref="trips")
+    city = relationship("City", backref="trips")
+    stops = relationship("TripStop", back_populates="trip", cascade="all, delete-orphan", order_by="TripStop.stop_order")
 
     def __repr__(self):
         return f"<Trip id={self.id} title='{self.title}' user_id={self.user_id}>"
