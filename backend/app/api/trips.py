@@ -1,0 +1,48 @@
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from app.db.session import get_db
+from app.models.trip import Trip
+from app.models.user import User
+from app.schemas.trip import TripCreate, TripResponse, TripUpdate
+from app.api.deps import get_current_user
+
+router = APIRouter(prefix="/trips", tags=["Trips"])
+
+@router.get("", response_model=List[TripResponse])
+def get_user_trips(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return db.query(Trip).filter(Trip.user_id == current_user.id).order_by(Trip.created_at.desc()).all()
+
+@router.post("", response_model=TripResponse, status_code=status.HTTP_201_CREATED)
+def create_trip(
+    payload: TripCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    new_trip = Trip(
+        user_id=current_user.id,
+        title=payload.title,
+        description=payload.description,
+        cover_image_url=payload.cover_image_url,
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        total_budget=payload.total_budget
+    )
+    db.add(new_trip)
+    db.commit()
+    db.refresh(new_trip)
+    return new_trip
+
+@router.get("/{trip_id}", response_model=TripResponse)
+def get_trip_details(
+    trip_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == current_user.id).first()
+    if not trip:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
+    return trip
