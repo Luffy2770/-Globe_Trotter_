@@ -55,7 +55,7 @@ export function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
+      <div className="min-h-screen flex items-center justify-center text-slate-500 text-xs font-semibold animate-pulse">
         Loading GlobeTrotter Application...
       </div>
     );
@@ -66,7 +66,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased pb-12">
+    <div className="min-h-screen text-slate-900 font-sans antialiased pb-12">
       <Navbar
         user={user}
         activeTab={activeTab}
