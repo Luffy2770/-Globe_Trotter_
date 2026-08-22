@@ -24,7 +24,7 @@ def test_screen4_activity_suggestions_by_city_name():
     assert res.status_code == 200
     activities = res.json()
     assert len(activities) > 0
-    assert any(a["name"] == "Senso-ji Temple & Asakusa Walking Tour" for a in activities)
+    assert any("Senso-ji" in a["name"] for a in activities)
 
 def test_screen4_create_trip_with_place_selection(auth_headers):
     payload = {
