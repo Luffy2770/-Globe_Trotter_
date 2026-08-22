@@ -30,7 +30,7 @@ export const MapView: React.FC<MapViewProps> = ({
   zoom = 2,
   height = '350px',
 }) => {
-  const validMarkers = markers.filter((m) => m.latitude && m.longitude);
+  const validMarkers = markers.filter((m) => m.latitude != null && m.longitude != null);
 
   const centerLat = validMarkers.length > 0 ? validMarkers[0].latitude : 20.0;
   const centerLng = validMarkers.length > 0 ? validMarkers[0].longitude : 0.0;

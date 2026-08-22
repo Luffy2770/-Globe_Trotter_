@@ -19,15 +19,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
+
+  // Debounce search term by 300ms to avoid unnecessary API queries
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const fetchDashboard = async () => {
     setLoading(true);
     try {
       const [dashRes, tripsRes] = await Promise.all([
         dashboardApi.getSummary(),
-        tripsApi.getTripsListing({ q: searchTerm, status: statusFilter, sort_by: sortBy }),
+        tripsApi.getTripsListing({ q: debouncedSearch, status: statusFilter, sort_by: sortBy }),
       ]);
       setDashboardData(dashRes.data);
       setTripsGrouped(tripsRes.data);
@@ -40,14 +49,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   useEffect(() => {
     fetchDashboard();
-  }, [searchTerm, statusFilter, sortBy]);
+  }, [debouncedSearch, statusFilter, sortBy]);
 
   const mapMarkers = (dashboardData?.top_regional_selections || []).map((city: any) => ({
     id: city.id,
     name: city.name,
     country: city.country,
-    latitude: city.latitude || 20.0,
-    longitude: city.longitude || 0.0,
+    latitude: city.latitude != null ? city.latitude : 20.0,
+    longitude: city.longitude != null ? city.longitude : 0.0,
     image_url: city.image_url,
   }));
 
@@ -124,7 +133,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-10 animate-scale-up">
-      {/* Hero Banner with Generous Margins & Edge Spacing */}
       {dashboardData?.banner && (
         <div className="relative rounded-3xl overflow-hidden bg-slate-900 text-white shadow-xl group">
           <img
@@ -156,7 +164,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       )}
 
-      {/* Interactive Leaflet World Map Visualization */}
       {mapMarkers.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -170,7 +177,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       )}
 
-      {/* Top Regional Selections (10 Global Cities) */}
       {dashboardData?.top_regional_selections?.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -205,7 +211,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       )}
 
-      {/* Interactive Search & Controls Bar */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
@@ -243,7 +248,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       </div>
 
-      {/* Categorized Trips Grid */}
       {loading ? (
         <div className="text-center py-16 text-slate-400 text-xs font-medium animate-pulse">
           Refreshing trip itineraries...

@@ -33,7 +33,7 @@ def build_catalog_item(act: Activity) -> CatalogSearchResultItem:
 @router.get("", response_model=Union[GroupedCatalogSearchResponse, FlatCatalogSearchResponse])
 def search_catalog_options(
     q: Optional[str] = Query(None, description="Search term for activity name, description, category, or city"),
-    category: Optional[str] = Query(None, description="Filter by category (Sightseeing, Culture, Food, Adventure)"),
+    category: Optional[str] = Query(None, description="Filter by category (Sightseeing, Culture, Food, Adventure, History)"),
     city_id: Optional[int] = Query(None, description="Filter by specific city ID"),
     region: Optional[str] = Query(None, description="Filter by region (Europe, Asia, Americas, Africa, Oceania)"),
     max_cost: Optional[float] = Query(None, description="Filter options under maximum cost"),
@@ -73,6 +73,9 @@ def search_catalog_options(
     if min_rating is not None:
         query = query.filter(Activity.rating >= min_rating)
 
+    # Compute true total match count before offset/limit pagination
+    total_matching_count = query.count()
+
     if sort_by == "cost_low":
         query = query.order_by(Activity.estimated_cost.asc())
     elif sort_by == "cost_high":
@@ -100,6 +103,6 @@ def search_catalog_options(
         return GroupedCatalogSearchResponse(grouped_results=grouped)
 
     return FlatCatalogSearchResponse(
-        total=len(results),
+        total=total_matching_count,
         results=results
     )

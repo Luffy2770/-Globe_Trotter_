@@ -4,19 +4,20 @@ import { Search, Star, Clock, MapPin } from 'lucide-react';
 
 export const CatalogSearchPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('Paragliding');
-  const [category] = useState('');
+  const [category, setCategory] = useState('');
   const [sortBy, setSortBy] = useState('rating_desc');
   const [groupBy, setGroupBy] = useState('none');
 
   const [results, setResults] = useState<any[]>([]);
   const [groupedResults, setGroupedResults] = useState<any>(null);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const fetchCatalog = async () => {
     setLoading(true);
     try {
       const res = await activitiesApi.searchCatalog({
-        q: searchTerm,
+        q: searchTerm || undefined,
         category: category || undefined,
         sort_by: sortBy,
         group_by: groupBy,
@@ -24,8 +25,10 @@ export const CatalogSearchPage: React.FC = () => {
       if (groupBy !== 'none' && res.data.grouped_results) {
         setGroupedResults(res.data.grouped_results);
         setResults([]);
+        setTotalCount(0);
       } else {
         setResults(res.data.results || []);
+        setTotalCount(res.data.total || 0);
         setGroupedResults(null);
       }
     } catch (err) {
@@ -89,8 +92,8 @@ export const CatalogSearchPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900 mt-2">Search Activities & Destinations</h1>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div className="md:col-span-2 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="relative sm:col-span-2">
             <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
             <input
               type="text"
@@ -100,6 +103,18 @@ export const CatalogSearchPage: React.FC = () => {
               className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
             />
           </div>
+
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
+          >
+            <option value="">All Categories</option>
+            <option value="Sightseeing">Sightseeing</option>
+            <option value="Culture">Culture</option>
+            <option value="Adventure">Adventure</option>
+            <option value="History">History</option>
+          </select>
 
           <select
             value={groupBy}
@@ -114,7 +129,7 @@ export const CatalogSearchPage: React.FC = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer md:col-span-1 sm:col-span-2"
           >
             <option value="rating_desc">Sort: Rating (High to Low)</option>
             <option value="cost_low">Sort: Cost (Low to High)</option>
@@ -141,7 +156,7 @@ export const CatalogSearchPage: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          <h2 className="text-sm font-bold text-slate-900">Results ({results.length} Options found)</h2>
+          <h2 className="text-sm font-bold text-slate-900">Results ({totalCount} Options found)</h2>
           {results.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {results.map((item, idx) => renderOptionCard(item, idx))}
