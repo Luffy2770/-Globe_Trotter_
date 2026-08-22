@@ -103,19 +103,19 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+    <div className="max-w-7xl mx-auto px-6 py-8 space-y-6 animate-scale-up">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-xs">
         <div>
-          <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-500/30">
-            Screen 5: Relational Itinerary Builder
+          <span className="px-3 py-1 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-full border border-blue-200">
+            Relational Itinerary Builder
           </span>
-          <h1 className="text-2xl font-extrabold text-white mt-2">Multi-City Trip Stops & Activities</h1>
-          <p className="text-xs text-slate-400">Configure city stops, stay budgets, and assign master catalog activities.</p>
+          <h1 className="text-2xl font-bold text-slate-900 mt-2">Multi-City Trip Stops & Activities</h1>
+          <p className="text-xs text-slate-500 font-medium">Manage city stops, accommodation budgets, and scheduled catalog activities.</p>
         </div>
 
         <button
           onClick={() => setShowAddStopModal(true)}
-          className="py-2.5 px-5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm flex items-center space-x-2 shadow transition"
+          className="py-2.5 px-5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-2xl text-xs flex items-center space-x-2 shadow-sm transition active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" />
           <span>+ Add City Stop</span>
@@ -123,31 +123,37 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-slate-400">Loading itinerary stops...</div>
+        <div className="text-center py-16 text-slate-400 text-xs font-medium animate-pulse">
+          Loading trip stops...
+        </div>
       ) : (
         <div className="space-y-6">
           {stops.map((stop, index) => (
-            <div key={stop.id} className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-lg space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-4 gap-2">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold">
+            <div
+              key={stop.id}
+              style={{ animationDelay: `${index * 0.1}s` }}
+              className="apple-card p-6 shadow-xs hover:shadow-md transition animate-fade-in space-y-4"
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-2">
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold text-sm">
                     #{index + 1}
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white">{stop.city?.name}, {stop.city?.country}</h3>
-                    <p className="text-xs text-slate-400">{stop.city?.region} • Stay Cost: ${stop.stay_cost}</p>
+                    <h3 className="text-lg font-bold text-slate-900">{stop.city?.name}, {stop.city?.country}</h3>
+                    <p className="text-xs text-slate-500 font-medium">{stop.city?.region} • Stay Budget: ${stop.stay_cost}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <div className="text-xs text-slate-300 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
-                    <Calendar className="w-3.5 h-3.5 inline mr-1 text-teal-400" />
-                    {stop.arrival_date || 'N/A'} → {stop.departure_date || 'N/A'}
+                  <div className="text-xs text-slate-700 bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200 font-medium">
+                    <Calendar className="w-3.5 h-3.5 inline mr-1.5 text-teal-600" />
+                    {stop.arrival_date || 'N/A'} to {stop.departure_date || 'N/A'}
                   </div>
 
                   <button
                     onClick={() => handleDeleteStop(stop.id)}
-                    className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition"
+                    className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-slate-50 transition"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -156,12 +162,12 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Scheduled Activities ({stop.activities?.length || 0})
                   </h4>
                   <button
                     onClick={() => openAssignActivityModal(stop)}
-                    className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1"
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-500 flex items-center space-x-1"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Assign Activity from Catalog</span>
@@ -173,22 +179,22 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
                     {stop.activities.map((ta: any) => (
                       <div
                         key={ta.id}
-                        className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-3.5 flex items-center justify-between"
+                        className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between hover:border-blue-200 transition"
                       >
                         <div className="space-y-1">
-                          <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-300 rounded-md">
+                          <span className="px-2.5 py-0.5 text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-200/60 rounded-md">
                             {ta.activity?.category}
                           </span>
-                          <h5 className="text-sm font-bold text-white">{ta.activity?.name}</h5>
-                          <p className="text-xs text-slate-400">
-                            Effective Cost: <span className="text-emerald-400 font-semibold">${ta.effective_cost}</span>
+                          <h5 className="text-xs font-bold text-slate-900 mt-1">{ta.activity?.name}</h5>
+                          <p className="text-[11px] text-slate-500 font-medium">
+                            Effective Cost: <span className="text-slate-900 font-bold">${ta.effective_cost}</span>
                             {ta.notes && ` • ${ta.notes}`}
                           </p>
                         </div>
 
                         <button
                           onClick={() => handleRemoveActivity(stop.id, ta.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-700"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-white"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -196,7 +202,7 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-3 text-xs text-slate-500 italic">
+                  <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 text-xs text-slate-400 italic">
                     No activities assigned to this stop yet. Click "Assign Activity from Catalog" above.
                   </div>
                 )}
@@ -207,16 +213,16 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
       )}
 
       {showAddStopModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4">
-            <h3 className="text-lg font-bold text-white">Add City Stop to Trip</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl">
+            <h3 className="text-lg font-bold text-slate-900">Add City Stop to Trip</h3>
             <form onSubmit={handleAddStopSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Select City</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Select Destination City</label>
                 <select
                   value={selectedCityId}
                   onChange={(e) => setSelectedCityId(Number(e.target.value))}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                 >
                   {cities.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -227,46 +233,46 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Stay Cost ($ USD)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Stay Cost ($ USD)</label>
                 <input
                   type="number"
                   min="0"
                   value={stayCost}
                   onChange={(e) => setStayCost(Number(e.target.value))}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Arrival Date</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Arrival Date</label>
                   <input
                     type="date"
                     value={arrivalDate}
                     onChange={(e) => setArrivalDate(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Departure Date</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Departure Date</label>
                   <input
                     type="date"
                     value={departureDate}
                     onChange={(e) => setDepartureDate(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowAddStopModal(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl"
+                  className="px-4 py-2 bg-slate-100 text-slate-600 text-xs font-semibold rounded-xl"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl">
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl shadow-sm">
                   Add Stop
                 </button>
               </div>
@@ -276,16 +282,16 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
       )}
 
       {selectedStopId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4">
-            <h3 className="text-lg font-bold text-white">Assign Activity from Master Catalog</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl">
+            <h3 className="text-lg font-bold text-slate-900">Assign Activity from Master Catalog</h3>
             <form onSubmit={handleAssignActivitySubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Select Activity</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Select Activity</label>
                 <select
                   value={selectedActivityId || ''}
                   onChange={(e) => setSelectedActivityId(Number(e.target.value))}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                 >
                   {availableActivities.map((act) => (
                     <option key={act.id} value={act.id}>
@@ -296,25 +302,25 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ trip
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Cost Override (Optional)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Cost Override (Optional)</label>
                 <input
                   type="number"
                   placeholder="Leave empty to use catalog price"
                   value={costOverride}
                   onChange={(e) => setCostOverride(e.target.value === '' ? '' : Number(e.target.value))}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setSelectedStopId(null)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl"
+                  className="px-4 py-2 bg-slate-100 text-slate-600 text-xs font-semibold rounded-xl"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl">
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl shadow-sm">
                   Assign to Stop
                 </button>
               </div>
