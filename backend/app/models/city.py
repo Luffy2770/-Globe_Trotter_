@@ -5,7 +5,7 @@ from app.db.session import Base
 class City(Base):
     __tablename__ = "cities"
 
-    id = Column(Integer, primary_index=True, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False, index=True)
     country = Column(String(100), nullable=False, index=True)
     region = Column(String(100), nullable=False, index=True)
