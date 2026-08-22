@@ -21,46 +21,35 @@ def seed_database():
             ("Barcelona", "Spain", "Europe", 2.2, 4.7, "Gaudi architecture, Sagrada Familia, and Mediterranean beaches.", "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800"),
             ("Amsterdam", "Netherlands", "Europe", 2.4, 4.8, "Historic canal system, Rijksmuseum, and Van Gogh art.", "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?w=800"),
             ("Vienna", "Austria", "Europe", 2.3, 4.7, "Imperial Habsburg palaces, Opera house, and classical music.", "https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=800"),
-            ("Prague", "Czech Republic", "Europe", 1.9, 4.8, "Charles Bridge, Old Town Square, and Gothic castles.", "https://images.unsplash.com/photo-1541849546-216549ae216d?w=800"),
-            ("Venice", "Italy", "Europe", 2.6, 4.8, "Romantic canal gondola rides and St. Mark's Basilica.", "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800"),
-            ("Berlin", "Germany", "Europe", 2.0, 4.6, "Brandenburg Gate, Berlin Wall art, and techno culture.", "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800"),
-            ("Madrid", "Spain", "Europe", 2.1, 4.7, "Prado Museum art collection and Royal Palace.", "https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=800"),
-            ("Florence", "Italy", "Europe", 2.2, 4.9, "Renaissance masterworks, Uffizi Gallery, and Duomo dome.", "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?w=800"),
-            ("Athens", "Greece", "Europe", 1.8, 4.7, "Acropolis citadel, Parthenon, and ancient Greek history.", "https://images.unsplash.com/photo-1555993539-1732b0258235?w=800"),
-            ("Dublin", "Ireland", "Europe", 2.3, 4.6, "Trinity College Library, pub culture, and historic castles.", "https://images.unsplash.com/photo-1549918864-48ac978761a4?w=800"),
-            ("Zurich", "Switzerland", "Europe", 3.2, 4.8, "Alpine lake scenery, chocolate making, and luxury watches.", "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800"),
 
-            # Asia
-            ("Tokyo", "Japan", "Asia", 2.8, 4.9, "Shibuya Crossing, Senso-ji temple, and neon lights.", "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800"),
-            ("Kyoto", "Japan", "Asia", 2.3, 4.9, "Fushimi Inari shrine gates, bamboo groves, and geisha districts.", "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800"),
-            ("Singapore", "Singapore", "Asia", 2.8, 4.9, "Gardens by the Bay Supertrees and Marina Bay Sands.", "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800"),
-            ("Bangkok", "Thailand", "Asia", 1.5, 4.7, "Grand Palace temples, floating markets, and street food.", "https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800"),
-            ("Bali", "Indonesia", "Asia", 1.6, 4.9, "Ubud rice terraces, Hindu sea temples, and tropical surfing.", "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800"),
-            ("Seoul", "South Korea", "Asia", 2.2, 4.8, "Gyeongbokgung Palace, N Seoul Tower, and K-Culture.", "https://images.unsplash.com/photo-1538485399081-7191377e8241?w=800"),
-            ("Hong Kong", "China", "Asia", 2.7, 4.7, "Victoria Harbour skyline, Peak Tram, and dim sum dining.", "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800"),
-            ("Mumbai", "India", "Asia", 1.4, 4.7, "Gateway of India waterfront and Bollywood film capital.", "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=800"),
-            ("Delhi", "India", "Asia", 1.3, 4.6, "Red Fort, Qutub Minar, and Taj Mahal gateway.", "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=800"),
+            # Japan (All Major Cities)
+            ("Tokyo", "Japan", "Asia", 2.8, 4.9, "Shibuya Crossing, Senso-ji temple, Akihabara, and neon lights.", "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800"),
+            ("Kyoto", "Japan", "Asia", 2.3, 4.9, "Fushimi Inari shrine gates, Arashiyama bamboo, and geisha tea houses.", "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800"),
+            ("Osaka", "Japan", "Asia", 2.2, 4.8, "Dotonbori food district, Osaka Castle, and Universal Studios Japan.", "https://images.unsplash.com/photo-1590559899731-a382839e5549?w=800"),
+            ("Sapporo", "Japan", "Asia", 2.0, 4.7, "Hokkaido snow festival, ramen alley, and Odori park.", "https://images.unsplash.com/photo-1578637387939-43c525550085?w=800"),
+            ("Hiroshima", "Japan", "Asia", 1.9, 4.8, "Peace Memorial Park and Itsukushima Floating Torii shrine.", "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800"),
+            ("Nara", "Japan", "Asia", 1.8, 4.8, "Todai-ji Giant Buddha and friendly free-roaming sacred deer park.", "https://images.unsplash.com/photo-1528164344705-47542687990d?w=800"),
+            ("Fukuoka", "Japan", "Asia", 1.9, 4.7, "Yatai open-air food stalls, Hakata ramen, and seaside tower.", "https://images.unsplash.com/photo-1578637387939-43c525550085?w=800"),
+            ("Nagoya", "Japan", "Asia", 2.0, 4.6, "Nagoya Castle, Toyota Techno Museum, and Atsuta Shrine.", "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800"),
+            ("Yokohama", "Japan", "Asia", 2.3, 4.7, "Minato Mirai skyline, Cup Noodle Museum, and Chinatown.", "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800"),
 
-            # Americas
-            ("New York", "USA", "Americas", 3.0, 4.9, "Statue of Liberty, Times Square, and Central Park.", "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800"),
+            # Americas (All Major US & American Cities)
+            ("New York", "USA", "Americas", 3.0, 4.9, "Statue of Liberty, Times Square, Broadway, and Central Park.", "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800"),
             ("San Francisco", "USA", "Americas", 3.1, 4.8, "Golden Gate Bridge, cable cars, and Alcatraz Island.", "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800"),
-            ("Los Angeles", "USA", "Americas", 2.9, 4.7, "Hollywood Sign, Santa Monica Pier, and beaches.", "https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=800"),
-            ("Vancouver", "Canada", "Americas", 2.6, 4.8, "Stanley Park seawall and Pacific coastal mountains.", "https://images.unsplash.com/photo-1559511260-66a654ae982a?w=800"),
-            ("Rio de Janeiro", "Brazil", "Americas", 1.8, 4.8, "Christ the Redeemer statue and Copacabana beach.", "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800"),
-            ("Cusco", "Peru", "Americas", 1.5, 4.9, "Machu Picchu citadel and Sacred Valley of the Incas.", "https://images.unsplash.com/photo-1526392060635-9d6019884377?w=800"),
+            ("Los Angeles", "USA", "Americas", 2.9, 4.7, "Hollywood Walk of Fame, Santa Monica Pier, and Venice Beach.", "https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=800"),
+            ("Chicago", "USA", "Americas", 2.6, 4.8, "Millennium Park Bean statue, Willis Tower skydeck, and deep dish pizza.", "https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=800"),
+            ("Miami", "USA", "Americas", 2.8, 4.8, "South Beach Art Deco district, Little Havana, and Biscayne Bay.", "https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=800"),
+            ("Las Vegas", "USA", "Americas", 2.7, 4.7, "The Strip resorts, Bellagio fountains, and Fremont Street experience.", "https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?w=800"),
+            ("Washington D.C.", "USA", "Americas", 2.5, 4.8, "The White House, National Mall, and Smithsonian Museums.", "https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=800"),
+            ("Boston", "USA", "Americas", 2.6, 4.7, "Freedom Trail, Harvard University, and Fenway Park.", "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800"),
+            ("Seattle", "USA", "Americas", 2.7, 4.8, "Space Needle, Pike Place Market, and Puget Sound views.", "https://images.unsplash.com/photo-1502175371642-14a743578918?w=800"),
+            ("Toronto", "Canada", "Americas", 2.5, 4.7, "CN Tower, Royal Ontario Museum, and waterfront islands.", "https://images.unsplash.com/photo-1517935706615-2717063c2225?w=800"),
+            ("Montreal", "Canada", "Americas", 2.2, 4.8, "Old Montreal cobblestone streets, Notre-Dame Basilica, and culinary scene.", "https://images.unsplash.com/photo-1519178614-68693b05f61c?w=800"),
+            ("Mexico City", "Mexico", "Americas", 1.6, 4.8, "Zocalo square, Frida Kahlo Museum, and ancient Teotihuacan pyramids.", "https://images.unsplash.com/photo-1518659267384-51103b812ae0?w=800"),
+            ("Buenos Aires", "Argentina", "Americas", 1.5, 4.8, "Tango dancing in La Boca, Recoleta district, and Argentine steak.", "https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=800"),
 
             # Middle East
             ("Dubai", "UAE", "Middle East", 2.9, 4.8, "Burj Khalifa, Palm Jumeirah, and desert safaris.", "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800"),
-            ("Abu Dhabi", "UAE", "Middle East", 2.8, 4.8, "Sheikh Zayed Grand Mosque and Louvre Abu Dhabi.", "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800"),
-            ("Istanbul", "Turkey", "Middle East", 1.7, 4.9, "Hagia Sophia, Blue Mosque, and Grand Bazaar.", "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800"),
-
-            # Africa
-            ("Cairo", "Egypt", "Africa", 1.5, 4.6, "Great Pyramids of Giza, Sphinx, and Nile River.", "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=800"),
-            ("Cape Town", "South Africa", "Africa", 1.8, 4.9, "Table Mountain cableway and Cape Peninsula.", "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=800"),
-
-            # Oceania
-            ("Sydney", "Australia", "Oceania", 2.6, 4.8, "Sydney Opera House, Harbour Bridge, and Bondi Beach.", "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800"),
-            ("Auckland", "New Zealand", "Oceania", 2.4, 4.7, "Sky Tower skyline and Hobbiton movie set gateway.", "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800")
         ]
 
         for i, (name, country, region, cost, rating, desc, img) in enumerate(raw_destinations, 1):
@@ -83,14 +72,11 @@ def seed_database():
         activities_data = [
             {"id": 1, "city_id": 1, "name": "Eiffel Tower Summit & Seine Cruise", "category": "Sightseeing", "estimated_cost": 65.0, "duration_minutes": 180, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400"},
             {"id": 2, "city_id": 1, "name": "Louvre Museum Priority Entry", "category": "Culture", "estimated_cost": 40.0, "duration_minutes": 180, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400"},
-            {"id": 3, "city_id": 15, "name": "Senso-ji Temple & Asakusa Walk", "category": "Culture", "estimated_cost": 25.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400"},
-            {"id": 4, "city_id": 15, "name": "Paragliding over Mount Fuji foothills", "category": "Adventure", "estimated_cost": 150.0, "duration_minutes": 240, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400"},
+            {"id": 3, "city_id": 7, "name": "Senso-ji Temple & Asakusa Walk", "category": "Culture", "estimated_cost": 25.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400"},
+            {"id": 4, "city_id": 7, "name": "Shibuya Sky Observation Deck", "category": "Sightseeing", "estimated_cost": 30.0, "duration_minutes": 90, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400"},
             {"id": 5, "city_id": 2, "name": "Colosseum & Ancient Forum Tour", "category": "Sightseeing", "estimated_cost": 50.0, "duration_minutes": 180, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400"},
-            {"id": 6, "city_id": 24, "name": "Statue of Liberty Cruise", "category": "Sightseeing", "estimated_cost": 45.0, "duration_minutes": 210, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400"},
-            {"id": 7, "city_id": 3, "name": "Tower of London & Crown Jewels", "category": "History", "estimated_cost": 35.0, "duration_minutes": 150, "rating": 4.7, "image_url": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400"},
-            {"id": 8, "city_id": 30, "name": "Burj Khalifa Observation Deck", "category": "Sightseeing", "estimated_cost": 75.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400"},
-            {"id": 9, "city_id": 4, "name": "Sagrada Familia Guided Tour", "category": "Culture", "estimated_cost": 48.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400"},
-            {"id": 10, "city_id": 33, "name": "Great Pyramids of Giza Tour", "category": "History", "estimated_cost": 30.0, "duration_minutes": 240, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=400"}
+            {"id": 6, "city_id": 16, "name": "Statue of Liberty & Ellis Island", "category": "Sightseeing", "estimated_cost": 45.0, "duration_minutes": 210, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400"},
+            {"id": 7, "city_id": 29, "name": "Burj Khalifa At The Top Lounge", "category": "Sightseeing", "estimated_cost": 85.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400"}
         ]
 
         for act in activities_data:
@@ -100,92 +86,116 @@ def seed_database():
 
         db.flush()
 
-        demo_user = db.query(User).filter(User.username == "demo_traveler").first()
-        if not demo_user:
-            demo_user = User(
-                username="demo_traveler",
-                email="demo@tripyfy.com",
+        # Seed Luffy User Account
+        luffy_user = db.query(User).filter(User.username == "luffy").first()
+        if not luffy_user:
+            luffy_user = User(
+                username="luffy",
+                email="luffy@tripyfy.com",
                 password_hash=get_password_hash("password123"),
-                first_name="Meet",
-                last_name="Kotecha",
-                city="San Francisco",
-                country="USA"
+                first_name="Luffy",
+                last_name="Monkey",
+                city="Tokyo",
+                country="Japan",
+                photo_url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400",
+                additional_info="World traveler exploring iconic cities across the seven seas."
             )
-            db.add(demo_user)
+            db.add(luffy_user)
             db.flush()
 
         today = date.today()
 
-        t_upcoming = db.query(Trip).filter(Trip.user_id == demo_user.id, Trip.title == "European Summer Gateway 2026").first()
-        if not t_upcoming:
-            t_upcoming = Trip(
-                user_id=demo_user.id,
-                title="European Summer Gateway 2026",
-                description="Multi-city tour covering Paris and Rome.",
-                cover_image_url="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800",
-                start_date=today + timedelta(days=30),
-                end_date=today + timedelta(days=44),
-                total_budget=3500.0,
-                city_id=1,
-                city_name="Paris"
-            )
-            db.add(t_upcoming)
-            db.flush()
-
-        t_ongoing = db.query(Trip).filter(Trip.user_id == demo_user.id, Trip.title == "Asian Cultural Expedition").first()
-        if not t_ongoing:
-            t_ongoing = Trip(
-                user_id=demo_user.id,
-                title="Asian Cultural Expedition",
-                description="Active travel exploration in Tokyo.",
+        # Completely NON-OVERLAPPING trip date ranges!
+        # Trip 1: Tokyo (Today to Today + 5 Days)
+        t1 = db.query(Trip).filter(Trip.user_id == luffy_user.id, Trip.title == "Tokyo Anime & Cultural Expedition").first()
+        if not t1:
+            t1 = Trip(
+                user_id=luffy_user.id,
+                title="Tokyo Anime & Cultural Expedition",
+                description="Ongoing exploration in Tokyo covering Senso-ji temple and Shibuya Sky.",
                 cover_image_url="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800",
-                start_date=today - timedelta(days=2),
+                start_date=today,
                 end_date=today + timedelta(days=5),
-                total_budget=2800.0,
-                city_id=15,
+                total_budget=3200.0,
+                city_id=7,
                 city_name="Tokyo"
             )
-            db.add(t_ongoing)
+            db.add(t1)
             db.flush()
 
-        t_completed = db.query(Trip).filter(Trip.user_id == demo_user.id, Trip.title == "Italian Renaissance Discovery").first()
-        if not t_completed:
-            t_completed = Trip(
-                user_id=demo_user.id,
-                title="Italian Renaissance Discovery",
-                description="Completed vacation exploring Rome.",
-                cover_image_url="https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800",
-                start_date=today - timedelta(days=60),
-                end_date=today - timedelta(days=50),
-                total_budget=2200.0,
-                city_id=2,
-                city_name="Rome"
-            )
-            db.add(t_completed)
-            db.flush()
-
-        stop1 = db.query(TripStop).filter(TripStop.trip_id == t_upcoming.id, TripStop.city_id == 1).first()
-        if not stop1:
             stop1 = TripStop(
-                trip_id=t_upcoming.id,
-                city_id=1,
+                trip_id=t1.id,
+                city_id=7,
                 stop_order=1,
-                arrival_date=t_upcoming.start_date,
-                departure_date=t_upcoming.start_date + timedelta(days=6),
-                stay_cost=1200.0
+                arrival_date=t1.start_date,
+                departure_date=t1.end_date,
+                stay_cost=1400.0
             )
             db.add(stop1)
             db.flush()
 
             ta1 = TripActivity(
                 trip_stop_id=stop1.id,
-                activity_id=1,
+                activity_id=3,
                 order_index=1,
                 scheduled_date=stop1.arrival_date + timedelta(days=1),
-                cost_override=65.0,
-                notes="Sunset ticket included."
+                cost_override=25.0
             )
             db.add(ta1)
+
+        # Trip 2: Paris (Today + 10 Days to Today + 17 Days)
+        t2 = db.query(Trip).filter(Trip.user_id == luffy_user.id, Trip.title == "European Renaissance & Grand Tour").first()
+        if not t2:
+            t2 = Trip(
+                user_id=luffy_user.id,
+                title="European Renaissance & Grand Tour",
+                description="Upcoming summer vacation across Paris and Rome.",
+                cover_image_url="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800",
+                start_date=today + timedelta(days=10),
+                end_date=today + timedelta(days=17),
+                total_budget=4500.0,
+                city_id=1,
+                city_name="Paris"
+            )
+            db.add(t2)
+            db.flush()
+
+            stop2 = TripStop(
+                trip_id=t2.id,
+                city_id=1,
+                stop_order=1,
+                arrival_date=t2.start_date,
+                departure_date=t2.end_date,
+                stay_cost=1800.0
+            )
+            db.add(stop2)
+            db.flush()
+
+            ta3 = TripActivity(
+                trip_stop_id=stop2.id,
+                activity_id=1,
+                order_index=1,
+                scheduled_date=stop2.arrival_date + timedelta(days=1),
+                cost_override=65.0
+            )
+            db.add(ta3)
+
+        # Trip 3: New York (Today - 20 Days to Today - 14 Days)
+        t3 = db.query(Trip).filter(Trip.user_id == luffy_user.id, Trip.title == "New York Skyline & Broadway Escape").first()
+        if not t3:
+            t3 = Trip(
+                user_id=luffy_user.id,
+                title="New York Skyline & Broadway Escape",
+                description="Completed getaway exploring Manhattan and Statue of Liberty.",
+                cover_image_url="https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800",
+                start_date=today - timedelta(days=20),
+                end_date=today - timedelta(days=14),
+                total_budget=2800.0,
+                city_id=16,
+                city_name="New York"
+            )
+            db.add(t3)
+            db.flush()
 
         db.commit()
     finally:

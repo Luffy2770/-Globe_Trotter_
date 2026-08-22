@@ -45,6 +45,8 @@ export const activitiesApi = {
 export const tripsApi = {
   getTripsListing: (params?: any) => api.get('/trips-listing', { params }),
   createTrip: (payload: any) => api.post('/trips', payload),
+  updateTrip: (tripId: number, payload: any) => api.put(`/trips/${tripId}`, payload),
+  deleteTrip: (tripId: number) => api.delete(`/trips/${tripId}`),
   getOverview: (tripId: number) => api.get(`/trips-listing/${tripId}/overview`),
 };
 
@@ -57,5 +59,3 @@ export const itineraryApi = {
   removeActivity: (tripId: number, stopId: number, activityItemId: number) => api.delete(`/trips/${tripId}/stops/${stopId}/activities/${activityItemId}`),
   getBudget: (tripId: number) => api.get(`/trips/${tripId}/budget`),
 };
-
-export default api;

@@ -131,3 +131,44 @@ def get_user_trip_listing(
         upcoming=upcoming,
         completed=completed
     )
+
+@router.get("/{trip_id}/overview")
+def get_trip_overview(
+    trip_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    trip = db.query(Trip).options(
+        selectinload(Trip.stops).selectinload(TripStop.activities).selectinload(TripActivity.activity)
+    ).filter(Trip.id == trip_id, Trip.user_id == current_user.id).first()
+
+    if not trip:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found.")
+
+    card = build_trip_overview_card_eager(trip)
+
+    stops_data = []
+    for s in (trip.stops or []):
+        activities_data = []
+        for ta in (s.activities or []):
+            activities_data.append({
+                "id": ta.id,
+                "cost_override": ta.cost_override,
+                "activity": {
+                    "id": ta.activity.id,
+                    "name": ta.activity.name,
+                    "estimated_cost": ta.activity.estimated_cost,
+                    "category": ta.activity.category
+                } if ta.activity else None
+            })
+        stops_data.append({
+            "id": s.id,
+            "city": {"name": s.city.name} if s.city else None,
+            "stay_cost": s.stay_cost,
+            "activities": activities_data
+        })
+
+    return {
+        "trip": card,
+        "stops": stops_data
+    }

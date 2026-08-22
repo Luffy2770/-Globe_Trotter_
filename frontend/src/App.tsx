@@ -6,6 +6,8 @@ import { MyTripsPage } from './pages/MyTripsPage';
 import { ProfilePreferencesPage } from './pages/ProfilePreferencesPage';
 import { ItineraryBuilderPage } from './pages/ItineraryBuilderPage';
 import { BudgetAnalyticsPage } from './pages/BudgetAnalyticsPage';
+import { AnalyticsDashboardPage } from './pages/AnalyticsDashboardPage';
+import { CalendarPlannerPage } from './pages/CalendarPlannerPage';
 import { CreateTripModal } from './pages/CreateTripModal';
 
 export function App() {
@@ -18,6 +20,8 @@ export function App() {
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [modalCityId, setModalCityId] = useState<number | null>(null);
+
+  const [tripRefreshCounter, setTripRefreshCounter] = useState<number>(0);
 
   useEffect(() => {
     if (user) {
@@ -57,6 +61,11 @@ export function App() {
     setIsCreateModalOpen(true);
   };
 
+  const handleTripCreatedSuccess = () => {
+    setTripRefreshCounter((prev) => prev + 1);
+    setActiveTab('trips');
+  };
+
   if (!user) {
     return <AuthPage onLoginSuccess={handleLoginSuccess} />;
   }
@@ -81,7 +90,14 @@ export function App() {
             onOpenCreateModal={() => handleOpenCreateModalWithCity()}
             onSelectTripForItinerary={handleSelectTripForItinerary}
             onSelectTripForBudget={handleSelectTripForBudget}
+            refreshTrigger={tripRefreshCounter}
           />
+        )}
+
+        {activeTab === 'calendar' && <CalendarPlannerPage />}
+
+        {activeTab === 'analytics' && (
+          <AnalyticsDashboardPage onSelectTripForBudget={handleSelectTripForBudget} />
         )}
 
         {activeTab === 'profile' && (
@@ -107,7 +123,7 @@ export function App() {
           setIsCreateModalOpen(false);
           setModalCityId(null);
         }}
-        onTripCreated={() => setActiveTab('trips')}
+        onTripCreated={handleTripCreatedSuccess}
         initialCityId={modalCityId}
       />
     </div>

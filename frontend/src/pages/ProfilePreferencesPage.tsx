@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { profileApi } from '../services/api';
-import { TripyfyLogo } from '../components/TripyfyLogo';
-import { User as UserIcon, Mail, Phone, MapPin, Save, LogOut, CheckCircle, Heart, Globe, DollarSign, Bell } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { tripsApi, profileApi } from '../services/api';
+import { Camera, MapPin, Calendar, Settings, Grid, Edit3, Check, Globe } from 'lucide-react';
 
 interface ProfilePreferencesPageProps {
   user: any;
@@ -14,370 +13,417 @@ export const ProfilePreferencesPage: React.FC<ProfilePreferencesPageProps> = ({
   onUpdateUser,
   onLogout,
 }) => {
-  const [firstName, setFirstName] = useState(user?.first_name || '');
-  const [lastName, setLastName] = useState(user?.last_name || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [phoneNumber, setPhoneNumber] = useState(user?.phone_number || '');
-  const [city, setCity] = useState(user?.city || '');
-  const [country, setCountry] = useState(user?.country || '');
-  const [photoUrl, setPhotoUrl] = useState(user?.photo_url || '');
-  const [additionalInfo, setAdditionalInfo] = useState(user?.additional_info || '');
+  const [activeTab, setActiveTab] = useState<'trips' | 'settings'>('trips');
+  const [userTrips, setUserTrips] = useState<any[]>([]);
+  const [loadingTrips, setLoadingTrips] = useState(true);
 
-  const [budgetPreference, setBudgetPreference] = useState<string>('Standard');
-  const [preferredContinents, setPreferredContinents] = useState<string[]>(['Europe', 'Asia']);
-  const [interests, setInterests] = useState<string[]>(['Culture & History', 'Sightseeing']);
-  const [currency, setCurrency] = useState<string>('USD ($)');
-  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
+  // Profile Form state
+  const [firstName, setFirstName] = useState(user?.first_name || 'Luffy');
+  const [lastName, setLastName] = useState(user?.last_name || 'Monkey');
+  const [city, setCity] = useState(user?.city || 'Tokyo');
+  const [country, setCountry] = useState(user?.country || 'Japan');
+  const [photoUrl, setPhotoUrl] = useState(user?.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400');
+  const [coverPhotoUrl, setCoverPhotoUrl] = useState(user?.cover_photo_url || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200');
+  const [bio, setBio] = useState(user?.additional_info || 'World traveler exploring iconic cities across the seven seas. 🌊✈️');
 
   const [saving, setSaving] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [error, setError] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  const continentsList = ['Europe', 'Asia', 'Americas', 'Middle East', 'Africa', 'Oceania'];
-  const interestsList = [
-    'Culture & History',
-    'Adventure & Outdoors',
-    'Culinary & Dining',
-    'Relaxation & Beach',
-    'Sightseeing & Architecture',
-  ];
+  useEffect(() => {
+    tripsApi
+      .getTripsListing({})
+      .then((res) => {
+        const all = [...(res.data.ongoing || []), ...(res.data.upcoming || []), ...(res.data.completed || [])];
+        setUserTrips(all);
+      })
+      .catch((err) => console.error('Failed to load trips for profile:', err))
+      .finally(() => setLoadingTrips(false));
+  }, []);
 
-  const toggleContinent = (cont: string) => {
-    if (preferredContinents.includes(cont)) {
-      setPreferredContinents(preferredContinents.filter((c) => c !== cont));
-    } else {
-      setPreferredContinents([...preferredContinents, cont]);
-    }
-  };
-
-  const toggleInterest = (interest: string) => {
-    if (interests.includes(interest)) {
-      setInterests(interests.filter((i) => i !== interest));
-    } else {
-      setInterests([...interests, interest]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setSuccessMessage('');
-    setError('');
 
     try {
       const payload = {
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        email: email.trim(),
-        phone_number: phoneNumber.trim() || null,
-        city: city.trim() || null,
-        country: country.trim() || null,
-        photo_url: photoUrl.trim() || null,
-        additional_info: additionalInfo.trim() || null,
+        first_name: firstName,
+        last_name: lastName,
+        city,
+        country,
+        photo_url: photoUrl,
+        cover_photo_url: coverPhotoUrl,
+        additional_info: bio,
       };
 
       const res = await profileApi.updateProfile(payload);
-      onUpdateUser(res.data);
-      setSuccessMessage('Profile and preferences updated successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (err: any) {
+      onUpdateUser({ ...user, ...res.data });
+      setShowEditModal(false);
+    } catch (err) {
       console.error('Failed to update profile:', err);
-      setError('Failed to update profile. Please check form fields.');
+      alert('Failed to save profile preferences.');
     } finally {
       setSaving(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 font-sans">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 px-6 py-4 shadow-xs">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <TripyfyLogo size="md" showText={true} />
+  const totalBudgetManaged = userTrips.reduce((acc, t) => acc + (t.total_budget || 0), 0);
+  const uniqueCities = new Set(userTrips.map((t) => t.city_name).filter(Boolean)).size;
 
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6 animate-scale-up pb-24 font-sans">
+      {/* 1. LinkedIn & Instagram Hybrid Hero Header */}
+      <div className="bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-xs relative">
+        {/* Cover Photo Banner (LinkedIn Style) */}
+        <div className="h-48 sm:h-64 w-full relative bg-stone-900 overflow-hidden">
+          <img
+            src={coverPhotoUrl}
+            alt="Cover Banner"
+            className="w-full h-full object-cover object-center opacity-90"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/60 via-transparent to-transparent" />
+
+          {/* Edit Cover Photo Button */}
           <button
-            onClick={onLogout}
-            className="py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs flex items-center space-x-1.5 transition"
+            onClick={() => setShowEditModal(true)}
+            className="absolute top-4 right-4 py-2 px-3 bg-stone-950/60 hover:bg-stone-950/80 backdrop-blur-md text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 transition border border-white/20"
           >
-            <LogOut className="w-4 h-4 text-slate-500" />
-            <span>Sign Out</span>
+            <Camera className="w-3.5 h-3.5" />
+            <span>Edit Cover Banner</span>
           </button>
         </div>
-      </header>
 
-      <main className="max-w-4xl mx-auto px-6 pt-8 space-y-6">
-        {successMessage && (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-2xl flex items-center space-x-2 animate-fade-in shadow-xs">
-            <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            <span>{successMessage}</span>
-          </div>
-        )}
-
-        {error && (
-          <div className="p-4 bg-rose-50 border border-rose-200 text-rose-600 text-xs font-semibold rounded-2xl animate-fade-in shadow-xs">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
-            <div className="flex items-center space-x-3 border-b border-slate-100 pb-4">
-              <UserIcon className="w-5 h-5 text-blue-600" />
-              <div>
-                <h2 className="text-base font-bold text-slate-900">Personal Information</h2>
-                <p className="text-xs text-slate-500 font-medium">Manage your personal account profile details.</p>
+        {/* Profile Info Row (Instagram Style Overlay) */}
+        <div className="px-6 sm:px-8 pb-6 pt-0 relative">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-4">
+            {/* Avatar PFP (Overlaid bottom-left) */}
+            <div className="relative flex-shrink-0">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-white shadow-xl overflow-hidden bg-stone-100">
+                <img
+                  src={photoUrl}
+                  alt={`${firstName} ${lastName}`}
+                  className="w-full h-full object-cover"
+                />
               </div>
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="absolute bottom-1 right-1 p-2 bg-emerald-800 text-white rounded-full shadow-md hover:bg-emerald-700 transition border-2 border-white"
+                title="Change Avatar PFP"
+              >
+                <Camera className="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 pb-2">
-              <div className="relative">
-                {photoUrl ? (
-                  <img
-                    src={photoUrl}
-                    alt="User Avatar"
-                    className="w-20 h-20 rounded-full object-cover border-2 border-blue-500 shadow-sm"
-                  />
-                ) : (
-                  <div className="w-20 h-20 rounded-full bg-blue-50 border-2 border-blue-200 text-blue-600 flex items-center justify-center font-bold text-2xl shadow-xs">
-                    {user?.first_name ? user.first_name[0].toUpperCase() : 'U'}
-                  </div>
-                )}
-              </div>
+            {/* Profile Action Buttons */}
+            <div className="flex items-center space-x-3 pt-2">
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="py-2.5 px-5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold rounded-2xl transition flex items-center space-x-1.5"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Edit Profile</span>
+              </button>
+              <button
+                onClick={onLogout}
+                className="py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-2xl transition"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
 
-              <div className="space-y-1 text-center sm:text-left">
-                <span className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-full border border-slate-200 inline-block">
-                  @{user?.username || 'traveler'}
+          {/* User Bio & Details */}
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center space-x-2">
+                <h1
+                  className="text-2xl sm:text-3xl font-serif italic font-bold text-stone-900"
+                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                >
+                  {firstName} {lastName}
+                </h1>
+                <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-800 text-[10px] font-extrabold rounded-full uppercase border border-emerald-200">
+                  Verified Traveler
                 </span>
-                <p className="text-xs text-slate-400 font-medium">Unique Account Handle</p>
               </div>
+              <p className="text-xs font-semibold text-stone-400 mt-0.5">@{user?.username || 'luffy'}</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <p className="text-xs text-stone-700 max-w-2xl leading-relaxed font-medium">
+              {bio}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-stone-500 pt-1">
+              <span className="flex items-center">
+                <MapPin className="w-3.5 h-3.5 mr-1 text-emerald-700" />
+                {city}, {country}
+              </span>
+              <span>•</span>
+              <span className="flex items-center">
+                <Globe className="w-3.5 h-3.5 mr-1 text-blue-600" />
+                Tripyfy Explorer
+              </span>
+            </div>
+          </div>
+
+          {/* Instagram-Style Stat Counters Bar */}
+          <div className="grid grid-cols-3 gap-4 border-t border-stone-100 pt-5 mt-6 text-center">
+            <div className="space-y-0.5">
+              <p className="text-xl sm:text-2xl font-black text-stone-900">{userTrips.length}</p>
+              <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Trips Planned</span>
+            </div>
+
+            <div className="space-y-0.5 border-x border-stone-100">
+              <p className="text-xl sm:text-2xl font-black text-emerald-800">{uniqueCities}</p>
+              <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Cities Visited</span>
+            </div>
+
+            <div className="space-y-0.5">
+              <p className="text-xl sm:text-2xl font-black text-stone-900">${totalBudgetManaged.toLocaleString()}</p>
+              <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Budget Managed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Instagram Tab Switcher */}
+      <div className="flex items-center justify-center border-b border-stone-200">
+        <button
+          onClick={() => setActiveTab('trips')}
+          className={`flex items-center space-x-2 py-3 px-6 text-xs font-extrabold uppercase tracking-wider border-b-2 transition ${
+            activeTab === 'trips'
+              ? 'border-emerald-800 text-emerald-800'
+              : 'border-transparent text-stone-400 hover:text-stone-700'
+          }`}
+        >
+          <Grid className="w-4 h-4" />
+          <span>My Trips Feed ({userTrips.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`flex items-center space-x-2 py-3 px-6 text-xs font-extrabold uppercase tracking-wider border-b-2 transition ${
+            activeTab === 'settings'
+              ? 'border-emerald-800 text-emerald-800'
+              : 'border-transparent text-stone-400 hover:text-stone-700'
+          }`}
+        >
+          <Settings className="w-4 h-4" />
+          <span>Settings & Preferences</span>
+        </button>
+      </div>
+
+      {/* 3. Tab Content */}
+      {activeTab === 'trips' ? (
+        /* Instagram-Style Post Grid for My Trips */
+        <div className="space-y-4">
+          {loadingTrips ? (
+            <div className="py-16 text-center text-stone-400 text-xs font-medium animate-pulse">
+              Loading Instagram-style trip grid...
+            </div>
+          ) : userTrips.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {userTrips.map((trip) => (
+                <div
+                  key={trip.id}
+                  className="group bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-xs hover:shadow-lg transition duration-300 flex flex-col justify-between"
+                >
+                  <div className="relative h-48 overflow-hidden bg-stone-100">
+                    <img
+                      src={
+                        trip.cover_image_url ||
+                        'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800'
+                      }
+                      alt={trip.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950/70 via-transparent to-transparent" />
+                    <span className="absolute top-3 left-3 px-2.5 py-0.5 bg-emerald-800/90 backdrop-blur-md text-white text-[10px] font-bold uppercase rounded-full">
+                      {trip.city_name || 'Destination'}
+                    </span>
+                    <span className="absolute bottom-3 right-3 px-2 py-0.5 bg-white/90 backdrop-blur-md text-stone-900 text-[10px] font-extrabold rounded-md">
+                      ${trip.total_budget?.toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="p-4 space-y-2">
+                    <h3
+                      className="text-base font-serif italic font-bold text-stone-900 truncate"
+                      style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                    >
+                      {trip.title}
+                    </h3>
+
+                    <div className="flex items-center justify-between text-[11px] font-semibold text-stone-500 pt-1 border-t border-stone-100">
+                      <span className="flex items-center">
+                        <Calendar className="w-3 h-3 mr-1 text-emerald-700" />
+                        {trip.duration_days} Days
+                      </span>
+                      <span className="capitalize text-emerald-800 font-extrabold">{trip.status}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white border border-stone-200 rounded-3xl p-12 text-center text-xs text-stone-400 italic">
+              No trips created yet. Click "Plan Trip" in the navbar to start your travel feed.
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Settings & Preferences Form */
+        <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6 max-w-2xl mx-auto">
+          <div className="border-b border-stone-100 pb-3">
+            <h2 className="text-lg font-bold text-stone-900">Profile & Preferences Settings</h2>
+            <p className="text-xs text-stone-500 font-medium">Update your account name, avatar URL, cover photo URL, and bio.</p>
+          </div>
+
+          <form onSubmit={handleSaveProfile} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">First Name</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">First Name</label>
                 <input
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-emerald-700"
                 />
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">Last Name</label>
                 <input
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-emerald-700"
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
-                <div className="relative">
-                  <Mail className="w-3.5 h-3.5 absolute left-3.5 top-3 text-slate-400" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
-                <div className="relative">
-                  <Phone className="w-3.5 h-3.5 absolute left-3.5 top-3 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="+1 (555) 000-0000"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">City</label>
-                <div className="relative">
-                  <MapPin className="w-3.5 h-3.5 absolute left-3.5 top-3 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="e.g. San Francisco"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Country</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">City</label>
                 <input
                   type="text"
-                  placeholder="e.g. USA"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">Country</label>
+                <input
+                  type="text"
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Avatar / Photo URL</label>
+              <label className="block text-xs font-semibold text-stone-700 mb-1">Avatar PFP Image URL</label>
               <input
-                type="url"
-                placeholder="https://images.unsplash.com/photo-..."
+                type="text"
                 value={photoUrl}
                 onChange={(e) => setPhotoUrl(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">About / Travel Persona</label>
+              <label className="block text-xs font-semibold text-stone-700 mb-1">LinkedIn-Style Cover Banner Photo URL</label>
+              <input
+                type="text"
+                value={coverPhotoUrl}
+                onChange={(e) => setCoverPhotoUrl(e.target.value)}
+                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 mb-1">Profile Bio</label>
               <textarea
                 rows={3}
-                placeholder="Share a short bio or travel description..."
-                value={additionalInfo}
-                onChange={(e) => setAdditionalInfo(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-xs focus:outline-none focus:border-emerald-700"
               />
             </div>
-          </div>
 
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
-            <div className="flex items-center space-x-3 border-b border-slate-100 pb-4">
-              <Heart className="w-5 h-5 text-rose-500" />
+            <div className="pt-2 flex justify-end">
+              <button
+                type="submit"
+                disabled={saving}
+                className="py-2.5 px-6 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center space-x-1.5 shadow-md transition"
+              >
+                <Check className="w-4 h-4" />
+                <span>{saving ? 'Saving...' : 'Save Settings'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Edit Profile Quick Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 bg-stone-950/75 backdrop-blur-md overflow-hidden font-sans">
+          <div className="bg-white border border-stone-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative my-auto">
+            <h3 className="text-base font-bold text-stone-900 border-b border-stone-100 pb-2">
+              Edit Avatar & Cover Banner
+            </h3>
+
+            <form onSubmit={handleSaveProfile} className="space-y-3">
               <div>
-                <h2 className="text-base font-bold text-slate-900">Travel Preferences</h2>
-                <p className="text-xs text-slate-500 font-medium">Customize your preferred travel style and destination choices.</p>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">Avatar PFP Image URL</label>
+                <input
+                  type="text"
+                  value={photoUrl}
+                  onChange={(e) => setPhotoUrl(e.target.value)}
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
+                />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-2 flex items-center">
-                <DollarSign className="w-3.5 h-3.5 text-teal-600 mr-1" />
-                Budget Preference
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {['Economy', 'Standard', 'Luxury / Premium'].map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    onClick={() => setBudgetPreference(b)}
-                    className={`py-2.5 px-3 rounded-2xl text-xs font-semibold border transition ${
-                      budgetPreference === b
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    {b}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-2 flex items-center">
-                <Globe className="w-3.5 h-3.5 text-blue-500 mr-1" />
-                Preferred Continents & Regions
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {continentsList.map((cont) => {
-                  const isSelected = preferredContinents.includes(cont);
-                  return (
-                    <button
-                      key={cont}
-                      type="button"
-                      onClick={() => toggleContinent(cont)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition ${
-                        isSelected
-                          ? 'bg-blue-50 text-blue-600 border-blue-300'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {cont} {isSelected && '✓'}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-2">Activity Interests</label>
-              <div className="flex flex-wrap gap-2">
-                {interestsList.map((int) => {
-                  const isSelected = interests.includes(int);
-                  return (
-                    <button
-                      key={int}
-                      type="button"
-                      onClick={() => toggleInterest(int)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition ${
-                        isSelected
-                          ? 'bg-teal-50 text-teal-700 border-teal-300'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {int} {isSelected && '✓'}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Preferred Currency</label>
-                <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 cursor-pointer"
-                >
-                  <option value="USD ($)">USD ($)</option>
-                  <option value="EUR (€)">EUR (€)</option>
-                  <option value="GBP (£)">GBP (£)</option>
-                  <option value="JPY (¥)">JPY (¥)</option>
-                  <option value="INR (₹)">INR (₹)</option>
-                </select>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">Cover Banner Photo URL</label>
+                <input
+                  type="text"
+                  value={coverPhotoUrl}
+                  onChange={(e) => setCoverPhotoUrl(e.target.value)}
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
+                />
               </div>
 
-              <div className="flex items-center justify-between pt-5">
-                <span className="text-xs font-semibold text-slate-700 flex items-center">
-                  <Bell className="w-3.5 h-3.5 text-amber-500 mr-1.5" />
-                  Email Notifications
-                </span>
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">Bio</label>
+                <input
+                  type="text"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-700"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2 border-t border-stone-100">
                 <button
                   type="button"
-                  onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                    notificationsEnabled
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-200 text-slate-500'
-                  }`}
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 bg-stone-100 text-stone-600 text-xs font-semibold rounded-xl"
                 >
-                  {notificationsEnabled ? 'Enabled' : 'Disabled'}
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-5 py-2 bg-emerald-800 text-white text-xs font-bold rounded-xl"
+                >
+                  Save Profile
                 </button>
               </div>
-            </div>
+            </form>
           </div>
-
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              disabled={saving}
-              className="py-3 px-8 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl text-xs flex items-center space-x-2 shadow-md transition active:scale-[0.98] disabled:opacity-50"
-            >
-              <Save className="w-4 h-4" />
-              <span>{saving ? 'Saving Changes...' : 'Save Profile & Preferences'}</span>
-            </button>
-          </div>
-        </form>
-      </main>
+        </div>
+      )}
     </div>
   );
 };

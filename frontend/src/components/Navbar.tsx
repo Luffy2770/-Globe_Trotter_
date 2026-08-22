@@ -1,6 +1,6 @@
 import React from 'react';
 import { TripyfyLogo } from './TripyfyLogo';
-import { Calendar, Search, LogOut, User as UserIcon, Plus } from 'lucide-react';
+import { Calendar, Search, LogOut, User as UserIcon, Plus, BarChart3, CalendarDays } from 'lucide-react';
 
 interface NavbarProps {
   user: any;
@@ -18,7 +18,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCreateModal,
 }) => {
   return (
-    <nav className="bg-[#f8f9fa]/90 backdrop-blur-md border-b border-stone-200/80 sticky top-0 z-50 px-6 py-3 shadow-xs">
+    <nav className="bg-[#f8f9fa]/90 backdrop-blur-md border-b border-stone-200/80 sticky top-0 z-50 px-6 py-3 shadow-xs font-sans">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div onClick={() => setActiveTab('explore')}>
           <TripyfyLogo size="md" showText={true} />
@@ -27,7 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center space-x-1 sm:space-x-2 bg-stone-200/50 p-1 rounded-2xl border border-stone-300/40">
           <button
             onClick={() => setActiveTab('explore')}
-            className={`flex items-center space-x-2 px-4 py-1.5 rounded-xl text-xs font-semibold transition ${
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
               activeTab === 'explore'
                 ? 'bg-white text-emerald-800 shadow-xs'
                 : 'text-stone-600 hover:text-stone-900'
@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={() => setActiveTab('trips')}
-            className={`flex items-center space-x-2 px-4 py-1.5 rounded-xl text-xs font-semibold transition ${
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
               activeTab === 'trips'
                 ? 'bg-white text-emerald-800 shadow-xs'
                 : 'text-stone-600 hover:text-stone-900'
@@ -47,6 +47,30 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Calendar className="w-3.5 h-3.5" />
             <span>My Trips</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('calendar')}
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+              activeTab === 'calendar'
+                ? 'bg-white text-emerald-800 shadow-xs'
+                : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <CalendarDays className="w-3.5 h-3.5" />
+            <span>Calendar</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+              activeTab === 'analytics'
+                ? 'bg-white text-emerald-800 shadow-xs'
+                : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span>Analytics</span>
           </button>
         </div>
 

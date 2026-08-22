@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { tripsApi } from '../services/api';
-import { Search, Calendar, MapPin, DollarSign, Clock, Plus, ArrowUpRight, Heart } from 'lucide-react';
+import { EditTripModal } from './EditTripModal';
+import { TripOverviewModal } from './TripOverviewModal';
+import { Search, Calendar, MapPin, DollarSign, Clock, Plus, ArrowUpRight, Heart, Trash2, Edit3, Eye } from 'lucide-react';
 
 interface MyTripsPageProps {
   onOpenCreateModal: () => void;
   onSelectTripForItinerary: (tripId: number) => void;
   onSelectTripForBudget: (tripId: number) => void;
+  refreshTrigger?: number;
 }
 
 export const MyTripsPage: React.FC<MyTripsPageProps> = ({
   onOpenCreateModal,
   onSelectTripForItinerary,
   onSelectTripForBudget,
+  refreshTrigger = 0,
 }) => {
   const [tripsGrouped, setTripsGrouped] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -20,6 +24,10 @@ export const MyTripsPage: React.FC<MyTripsPageProps> = ({
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
+
+  const [editingTrip, setEditingTrip] = useState<any | null>(null);
+  const [overviewTripId, setOverviewTripId] = useState<number | null>(null);
+  const [deletingTripId, setDeletingTripId] = useState<number | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -46,13 +54,31 @@ export const MyTripsPage: React.FC<MyTripsPageProps> = ({
 
   useEffect(() => {
     fetchTrips();
-  }, [debouncedSearch, statusFilter, sortBy]);
+  }, [debouncedSearch, statusFilter, sortBy, refreshTrigger]);
+
+  const handleDeleteTrip = async (tripId: number, title: string) => {
+    if (!window.confirm(`Are you sure you want to remove trip "${title}"?`)) {
+      return;
+    }
+
+    setDeletingTripId(tripId);
+    try {
+      await tripsApi.deleteTrip(tripId);
+      fetchTrips();
+    } catch (err) {
+      console.error('Failed to delete trip:', err);
+      alert('Failed to remove trip. Please try again.');
+    } finally {
+      setDeletingTripId(null);
+    }
+  };
 
   const renderTripCard = (trip: any, index: number) => (
     <div
       key={trip.id}
       style={{ animationDelay: `${index * 0.08}s` }}
-      className="apple-card p-6 border border-stone-200/90 rounded-3xl shadow-xs hover:shadow-md transition animate-fade-in space-y-4 bg-white"
+      className="apple-card p-6 border border-stone-200/90 rounded-3xl shadow-xs hover:shadow-md transition animate-fade-in space-y-4 bg-white cursor-pointer group"
+      onClick={() => setOverviewTripId(trip.id)}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-stone-100 pb-3 gap-2">
         <div className="flex items-center space-x-3">
@@ -68,16 +94,43 @@ export const MyTripsPage: React.FC<MyTripsPageProps> = ({
             {trip.status}
           </span>
           <h3
-            className="text-lg font-serif italic font-bold text-stone-900"
+            className="text-lg font-serif italic font-bold text-stone-900 group-hover:text-emerald-800 transition"
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
           >
             {trip.title}
           </h3>
         </div>
 
-        <div className="flex items-center space-x-2 text-xs text-stone-500 font-medium">
-          <Clock className="w-3.5 h-3.5 text-stone-400" />
-          <span>Duration: {trip.duration_days} Days</span>
+        <div className="flex items-center space-x-3" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center space-x-1 text-xs text-stone-500 font-medium">
+            <Clock className="w-3.5 h-3.5 text-stone-400" />
+            <span>Duration: {trip.duration_days} Days</span>
+          </div>
+
+          <button
+            onClick={() => setOverviewTripId(trip.id)}
+            title="Inspect Trip Details"
+            className="p-1.5 text-stone-400 hover:text-emerald-800 rounded-lg hover:bg-emerald-50 transition"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => setEditingTrip(trip)}
+            title="Edit Trip Details"
+            className="p-1.5 text-stone-400 hover:text-emerald-800 rounded-lg hover:bg-emerald-50 transition"
+          >
+            <Edit3 className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => handleDeleteTrip(trip.id, trip.title)}
+            disabled={deletingTripId === trip.id}
+            title="Remove Trip"
+            className="p-1.5 text-stone-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
@@ -104,7 +157,7 @@ export const MyTripsPage: React.FC<MyTripsPageProps> = ({
         </div>
       </div>
 
-      <div className="flex justify-end space-x-2 pt-1">
+      <div className="flex justify-end space-x-2 pt-1" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={() => onSelectTripForItinerary(trip.id)}
           className="py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold rounded-xl transition flex items-center space-x-1"
@@ -134,7 +187,7 @@ export const MyTripsPage: React.FC<MyTripsPageProps> = ({
           >
             My Trips & Vacation Plans
           </h1>
-          <p className="text-xs text-stone-500 font-medium">Manage current ongoing trips, past completed trips, and wishlist vacations.</p>
+          <p className="text-xs text-stone-500 font-medium">Manage current ongoing trips, past completed trips, and wishlist vacations. Click any trip to view details.</p>
         </div>
 
         <button
@@ -142,7 +195,7 @@ export const MyTripsPage: React.FC<MyTripsPageProps> = ({
           className="py-2.5 px-5 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-2xl text-xs flex items-center space-x-2 shadow-xs transition active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" />
-          <span>+ Plan a New Trip</span>
+          <span>Plan a New Trip</span>
         </button>
       </div>
 
@@ -248,16 +301,31 @@ export const MyTripsPage: React.FC<MyTripsPageProps> = ({
         </div>
       )}
 
-      {/* Floating Action Button (+ Plan a trip) */}
+      {/* Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={onOpenCreateModal}
           className="py-3 px-6 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-full text-xs flex items-center space-x-2 shadow-2xl shadow-emerald-900/30 transition hover:scale-105 active:scale-95 border border-white/20"
         >
           <Plus className="w-4 h-4" />
-          <span>Plan a trip</span>
+          <span>Plan a Trip</span>
         </button>
       </div>
+
+      {/* Edit Trip Modal */}
+      <EditTripModal
+        trip={editingTrip}
+        onClose={() => setEditingTrip(null)}
+        onTripUpdated={fetchTrips}
+      />
+
+      {/* Trip Overview Modal */}
+      <TripOverviewModal
+        tripId={overviewTripId}
+        onClose={() => setOverviewTripId(null)}
+        onSelectItinerary={onSelectTripForItinerary}
+        onSelectBudget={onSelectTripForBudget}
+      />
     </div>
   );
 };

@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { tripsApi, citiesApi } from '../services/api';
-import { X, Calendar, DollarSign, Plus, ChevronDown, AlertTriangle } from 'lucide-react';
+import { X, Calendar, DollarSign, Save, ChevronDown } from 'lucide-react';
 
-interface CreateTripModalProps {
-  isOpen: boolean;
+interface EditTripModalProps {
+  trip: any | null;
   onClose: () => void;
-  onTripCreated: () => void;
-  initialCityId?: number | null;
+  onTripUpdated: () => void;
 }
 
-export const CreateTripModal: React.FC<CreateTripModalProps> = ({
-  isOpen,
-  onClose,
-  onTripCreated,
-  initialCityId = null,
-}) => {
+export const EditTripModal: React.FC<EditTripModalProps> = ({ trip, onClose, onTripUpdated }) => {
   const [title, setTitle] = useState('');
   const [cities, setCities] = useState<any[]>([]);
-  const [existingTrips, setExistingTrips] = useState<any[]>([]);
   const [selectedCityId, setSelectedCityId] = useState<number>(1);
   const [selectedCityName, setSelectedCityName] = useState<string>('');
   const [startDate, setStartDate] = useState('');
@@ -29,64 +22,30 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isOpen) {
+    if (trip) {
+      setTitle(trip.title || '');
+      setSelectedCityId(trip.city_id || 1);
+      setSelectedCityName(trip.city_name || '');
+      setStartDate(trip.start_date || '');
+      setEndDate(trip.end_date || '');
+      setTotalBudget(trip.total_budget || 2000);
+      setDescription(trip.description || '');
+
       citiesApi.search().then((res) => {
         setCities(res.data);
-        if (initialCityId) {
-          setSelectedCityId(initialCityId);
-          const found = res.data.find((c: any) => c.id === initialCityId);
-          if (found) {
-            setSelectedCityName(found.name);
-            setTitle(`Vacation in ${found.name}`);
-          }
-        } else if (res.data.length > 0) {
-          setSelectedCityId(res.data[0].id);
-          setSelectedCityName(res.data[0].name);
-          setTitle(`Vacation in ${res.data[0].name}`);
-        }
       });
-
-      tripsApi.getTripsListing({}).then((res) => {
-        const all = [...(res.data.ongoing || []), ...(res.data.upcoming || []), ...(res.data.completed || [])];
-        setExistingTrips(all);
-      });
-
-      // Default start date today, end date 5 days out
-      const today = new Date();
-      const sStr = today.toISOString().split('T')[0];
-      const eDate = new Date();
-      eDate.setDate(today.getDate() + 5);
-      const eStr = eDate.toISOString().split('T')[0];
-
-      setStartDate(sStr);
-      setEndDate(eStr);
     }
-  }, [isOpen, initialCityId]);
+  }, [trip]);
 
-  if (!isOpen) return null;
+  if (!trip) return null;
 
   const handleCityChange = (cityId: number) => {
     setSelectedCityId(cityId);
     const found = cities.find((c) => c.id === cityId);
     if (found) {
       setSelectedCityName(found.name);
-      setTitle(`Vacation in ${found.name}`);
     }
   };
-
-  const checkDateOverlap = () => {
-    if (!startDate || !endDate) return null;
-    for (const trip of existingTrips) {
-      if (trip.start_date && trip.end_date) {
-        if (startDate <= trip.end_date && endDate >= trip.start_date) {
-          return trip;
-        }
-      }
-    }
-    return null;
-  };
-
-  const overlapTrip = checkDateOverlap();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,11 +56,6 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
 
     if (startDate && endDate && endDate < startDate) {
       setError('End date cannot be earlier than start date.');
-      return;
-    }
-
-    if (overlapTrip) {
-      setError(`Trip dates overlap with "${overlapTrip.title}" (${overlapTrip.start_date} to ${overlapTrip.end_date}). Trips cannot overlap on the same dates.`);
       return;
     }
 
@@ -119,12 +73,12 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
         description: description.trim() || null,
       };
 
-      await tripsApi.createTrip(payload);
-      onTripCreated();
+      await tripsApi.updateTrip(trip.id, payload);
+      onTripUpdated();
       onClose();
     } catch (err: any) {
-      console.error('Failed to create trip:', err);
-      setError('Failed to create trip. Please try non-overlapping dates.');
+      console.error('Failed to update trip:', err);
+      setError('Failed to update trip. Please check form fields.');
     } finally {
       setLoading(false);
     }
@@ -145,28 +99,20 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
             className="text-2xl font-serif italic font-bold text-stone-900 tracking-tight"
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
           >
-            Plan a New Vacation
+            Edit Trip Details
           </h2>
-          <p className="text-xs text-stone-500 font-medium mt-1">Select non-overlapping travel dates, budget, and destination city.</p>
+          <p className="text-xs text-stone-500 font-medium mt-1">Update title, destination city, target budget, and date range.</p>
         </div>
 
         {error && (
-          <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-2xl flex items-start space-x-2">
-            <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {overlapTrip && !error && (
-          <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium rounded-2xl flex items-start space-x-2">
-            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-            <span>Warning: Dates overlap with "{overlapTrip.title}". Please select non-overlapping dates.</span>
+          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-600 text-xs font-semibold rounded-xl">
+            {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">Trip Title *</label>
+            <label className="block text-xs font-semibold text-stone-700 mb-1">Trip Name / Title *</label>
             <input
               type="text"
               required
@@ -263,11 +209,11 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={loading || !!overlapTrip}
+              disabled={loading}
               className="px-6 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center space-x-1.5 shadow-md transition active:scale-[0.98] disabled:opacity-50"
             >
-              <Plus className="w-4 h-4" />
-              <span>{loading ? 'Creating Trip...' : 'Create Trip'}</span>
+              <Save className="w-4 h-4" />
+              <span>{loading ? 'Saving Changes...' : 'Save Changes'}</span>
             </button>
           </div>
         </form>

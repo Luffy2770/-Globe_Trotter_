@@ -33,7 +33,7 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 sm:p-6 bg-stone-950/75 backdrop-blur-md overflow-hidden font-sans">
-      <div className="bg-white border border-stone-200 rounded-3xl max-w-3xl w-full max-h-[88vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl relative my-auto scrollbar-thin">
+      <div className="bg-white border border-stone-200 rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl relative my-auto no-scrollbar">
         {/* Single Top-Right Close Button */}
         <button
           onClick={onClose}
@@ -44,7 +44,7 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
         </button>
 
         {/* Hero Image & Overlay */}
-        <div className="relative rounded-2xl overflow-hidden bg-stone-900 h-64 sm:h-72 -mx-2 -mt-2">
+        <div className="relative rounded-2xl overflow-hidden bg-stone-900 h-60 sm:h-64 -mx-2 -mt-2">
           <img
             src={city.image_url}
             alt={city.name}
@@ -61,12 +61,12 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
               </span>
             </div>
             <h2
-              className="text-3xl sm:text-4xl font-serif italic font-bold text-white tracking-tight"
+              className="text-3xl font-serif italic font-bold text-white tracking-tight"
               style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
             >
               {city.name}
             </h2>
-            <p className="text-xs sm:text-sm text-stone-200 font-medium flex items-center mt-1">
+            <p className="text-xs text-stone-200 font-medium flex items-center mt-1">
               <MapPin className="w-4 h-4 text-emerald-400 mr-1.5" />
               {city.country} • Cost Index: {city.cost_index}x
             </p>
@@ -77,23 +77,23 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3 text-center space-y-1">
             <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block flex items-center justify-center">
-              <DollarSign className="w-3 h-3 text-emerald-700 mr-0.5" /> Avg Daily Spend
+              <DollarSign className="w-3 h-3 text-emerald-700 mr-0.5" /> Avg Spend
             </span>
-            <span className="text-sm sm:text-base font-extrabold text-stone-900">~${avgDailyCost} / day</span>
+            <span className="text-xs sm:text-sm font-extrabold text-stone-900">~${avgDailyCost} / day</span>
           </div>
 
           <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3 text-center space-y-1">
             <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block flex items-center justify-center">
-              <Sun className="w-3 h-3 text-amber-500 mr-0.5" /> Best Travel Season
+              <Sun className="w-3 h-3 text-amber-500 mr-0.5" /> Best Season
             </span>
-            <span className="text-xs sm:text-xs font-bold text-stone-800">Apr - Oct (Spring/Fall)</span>
+            <span className="text-xs font-bold text-stone-800">Apr - Oct</span>
           </div>
 
           <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3 text-center space-y-1">
             <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block flex items-center justify-center">
-              <Award className="w-3 h-3 text-indigo-600 mr-0.5" /> Global Popularity
+              <Award className="w-3 h-3 text-indigo-600 mr-0.5" /> Popularity
             </span>
-            <span className="text-xs sm:text-xs font-bold text-stone-800">Top Tier Destination</span>
+            <span className="text-xs font-bold text-stone-800">Top Tier</span>
           </div>
         </div>
 
@@ -103,7 +103,7 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
             <Compass className="w-4 h-4 text-emerald-800 mr-1.5" />
             <span>About {city.name}</span>
           </h3>
-          <p className="text-xs sm:text-sm text-stone-700 leading-relaxed font-medium bg-stone-50 p-4 rounded-2xl border border-stone-100">
+          <p className="text-xs text-stone-700 leading-relaxed font-medium bg-stone-50 p-4 rounded-2xl border border-stone-100">
             {city.description ||
               `${city.name} is a premier global destination in ${city.country}, offering world-renowned architecture, vibrant local culture, and landmark travel experiences.`}
           </p>
@@ -113,19 +113,19 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
         <div className="space-y-3">
           <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider flex items-center">
             <Tag className="w-4 h-4 text-emerald-700 mr-1.5" />
-            <span>Top Recommended Places & Activities in {city.name}</span>
+            <span>Top Places & Activities in {city.name}</span>
           </h3>
 
           {loading ? (
-            <div className="text-center py-8 text-stone-400 text-xs font-medium animate-pulse">
+            <div className="text-center py-6 text-stone-400 text-xs font-medium animate-pulse">
               Loading recommended places...
             </div>
           ) : activities.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-52 overflow-y-auto pr-1 scrollbar-thin">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-1 no-scrollbar">
               {activities.map((act) => (
                 <div
                   key={act.id}
-                  className="p-3.5 bg-white border border-stone-200 rounded-2xl flex items-center justify-between hover:border-emerald-300 transition shadow-2xs"
+                  className="p-3 bg-white border border-stone-200 rounded-2xl flex items-center justify-between hover:border-emerald-300 transition shadow-2xs"
                 >
                   <div className="space-y-0.5">
                     <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-800 rounded-md">

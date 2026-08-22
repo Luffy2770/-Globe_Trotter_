@@ -47,7 +47,6 @@ def create_user_trip(
     db.add(new_trip)
     db.flush()
 
-    # Automatically create the first TripStop for the primary destination city
     if city_id_val:
         initial_stop = TripStop(
             trip_id=new_trip.id,
@@ -62,3 +61,61 @@ def create_user_trip(
     db.commit()
     db.refresh(new_trip)
     return new_trip
+
+@router.put("/{trip_id}", response_model=TripResponse)
+def update_user_trip(
+    trip_id: int,
+    payload: TripCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == current_user.id).first()
+    if not trip:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Trip with id {trip_id} not found."
+        )
+
+    target_city = None
+    if payload.city_name:
+        target_city = db.query(City).filter(City.name.ilike(payload.city_name.strip())).first()
+    elif payload.city_id:
+        target_city = db.query(City).filter(City.id == payload.city_id).first()
+
+    if payload.title:
+        trip.title = payload.title
+    if payload.description is not None:
+        trip.description = payload.description
+    if payload.start_date is not None:
+        trip.start_date = payload.start_date
+    if payload.end_date is not None:
+        trip.end_date = payload.end_date
+    if payload.total_budget is not None:
+        trip.total_budget = payload.total_budget
+
+    if target_city:
+        trip.city_id = target_city.id
+        trip.city_name = target_city.name
+        if target_city.image_url:
+            trip.cover_image_url = target_city.image_url
+
+    db.commit()
+    db.refresh(trip)
+    return trip
+
+@router.delete("/{trip_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user_trip(
+    trip_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == current_user.id).first()
+    if not trip:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Trip with id {trip_id} not found."
+        )
+
+    db.delete(trip)
+    db.commit()
+    return None

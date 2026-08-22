@@ -8,14 +8,19 @@
 
 body {
   margin: 0;
-  background-color: #f8fafc;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(224, 242, 254, 0.5) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(220, 252, 231, 0.4) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(238, 242, 255, 0.5) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(241, 245, 249, 0.6) 0px, transparent 50%);
-  background-attachment: fixed;
+  background-color: #f6f7f5;
   color: #0f172a;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 @keyframes fadeIn {
@@ -49,7 +54,7 @@ body {
 }
 
 .apple-glass {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.9);
@@ -57,7 +62,7 @@ body {
 }
 
 .apple-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(226, 232, 240, 0.8);
