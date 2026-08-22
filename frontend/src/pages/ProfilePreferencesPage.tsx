@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { profileApi } from '../services/api';
-import { User as UserIcon, Mail, Phone, MapPin, Save, LogOut, CheckCircle, Compass, Heart, Globe, DollarSign, Bell } from 'lucide-react';
+import { TripyfyLogo } from '../components/TripyfyLogo';
+import { User as UserIcon, Mail, Phone, MapPin, Save, LogOut, CheckCircle, Heart, Globe, DollarSign, Bell } from 'lucide-react';
 
 interface ProfilePreferencesPageProps {
   user: any;
@@ -91,17 +92,7 @@ export const ProfilePreferencesPage: React.FC<ProfilePreferencesPageProps> = ({
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 font-sans">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 px-6 py-4 shadow-xs">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="bg-blue-600 p-2 rounded-xl text-white shadow-xs">
-              <Compass className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-lg font-extrabold text-slate-900 tracking-tight">GlobeTrotter</span>
-              <span className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                User Profile & Preferences
-              </span>
-            </div>
-          </div>
+          <TripyfyLogo size="md" showText={true} />
 
           <button
             onClick={onLogout}
