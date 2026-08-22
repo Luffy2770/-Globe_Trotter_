@@ -1,3 +1,7 @@
+# PDF and Implementation plan files
+GlobeTrotter.pdf
+implementation_plan.md
+
 # Byte-compiled / optimized files
 __pycache__/
 *.py[cod]
@@ -7,7 +11,6 @@ __pycache__/
 *.so
 
 # Distribution / packaging
-.Python
 env/
 venv/
 ENV/
