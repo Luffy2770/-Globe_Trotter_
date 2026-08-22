@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { activitiesApi } from '../services/api';
-import { Search, Star, Clock, MapPin } from 'lucide-react';
+import { activitiesApi, tripsApi, itineraryApi } from '../services/api';
+import { Search, Star, Clock, MapPin, PlusCircle, Check } from 'lucide-react';
 
 export const CatalogSearchPage: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('Paragliding');
+  const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('');
   const [sortBy, setSortBy] = useState('rating_desc');
   const [groupBy, setGroupBy] = useState('none');
@@ -12,6 +12,15 @@ export const CatalogSearchPage: React.FC = () => {
   const [groupedResults, setGroupedResults] = useState<any>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  // Selection Modal state
+  const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
+  const [userTrips, setUserTrips] = useState<any[]>([]);
+  const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
+  const [tripStops, setTripStops] = useState<any[]>([]);
+  const [selectedStopId, setSelectedStopId] = useState<number | null>(null);
+  const [assignSuccessMessage, setAssignSuccessMessage] = useState('');
+  const [assignLoading, setAssignLoading] = useState(false);
 
   const fetchCatalog = async () => {
     setLoading(true);
@@ -42,11 +51,68 @@ export const CatalogSearchPage: React.FC = () => {
     fetchCatalog();
   }, [searchTerm, category, sortBy, groupBy]);
 
+  const openAssignModal = async (activity: any) => {
+    setSelectedActivity(activity);
+    setAssignSuccessMessage('');
+    try {
+      const res = await tripsApi.getTripsListing({});
+      const tripsList = [...(res.data.ongoing || []), ...(res.data.upcoming || [])];
+      setUserTrips(tripsList);
+      if (tripsList.length > 0) {
+        setSelectedTripId(tripsList[0].id);
+        const stopsRes = await itineraryApi.getStops(tripsList[0].id);
+        setTripStops(stopsRes.data);
+        if (stopsRes.data.length > 0) {
+          setSelectedStopId(stopsRes.data[0].id);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load user trips for activity assignment:', err);
+    }
+  };
+
+  const handleTripChange = async (tId: number) => {
+    setSelectedTripId(tId);
+    try {
+      const stopsRes = await itineraryApi.getStops(tId);
+      setTripStops(stopsRes.data);
+      if (stopsRes.data.length > 0) {
+        setSelectedStopId(stopsRes.data[0].id);
+      } else {
+        setSelectedStopId(null);
+      }
+    } catch (err) {
+      console.error('Failed to fetch stops for trip:', err);
+    }
+  };
+
+  const handleAssignSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTripId || !selectedStopId || !selectedActivity) return;
+    setAssignLoading(true);
+    setAssignSuccessMessage('');
+
+    try {
+      await itineraryApi.assignActivity(selectedTripId, selectedStopId, {
+        activity_id: selectedActivity.id,
+      });
+      setAssignSuccessMessage(`Successfully added "${selectedActivity.name}" to your trip itinerary!`);
+      setTimeout(() => {
+        setSelectedActivity(null);
+        setAssignSuccessMessage('');
+      }, 1800);
+    } catch (err) {
+      console.error('Failed to assign activity to stop:', err);
+    } finally {
+      setAssignLoading(false);
+    }
+  };
+
   const renderOptionCard = (item: any, idx: number) => (
     <div
       key={item.id}
       style={{ animationDelay: `${idx * 0.06}s` }}
-      className="apple-card p-6 flex flex-col justify-between animate-fade-in group"
+      className="apple-card p-6 flex flex-col justify-between animate-fade-in group hover:shadow-lg transition"
     >
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -72,12 +138,22 @@ export const CatalogSearchPage: React.FC = () => {
         </p>
       </div>
 
-      <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-600">
-        <span className="flex items-center font-medium">
-          <Clock className="w-3.5 h-3.5 text-teal-600 mr-1" />
-          {item.duration_minutes} mins
-        </span>
-        <span className="font-bold text-slate-900 text-sm">${item.estimated_cost}</span>
+      <div className="pt-3 border-t border-slate-100 space-y-3">
+        <div className="flex items-center justify-between text-xs text-slate-600">
+          <span className="flex items-center font-medium">
+            <Clock className="w-3.5 h-3.5 text-teal-600 mr-1" />
+            {item.duration_minutes} mins
+          </span>
+          <span className="font-bold text-slate-900 text-sm">${item.estimated_cost}</span>
+        </div>
+
+        <button
+          onClick={() => openAssignModal(item)}
+          className="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 shadow-sm transition active:scale-[0.98]"
+        >
+          <PlusCircle className="w-4 h-4" />
+          <span>Add to Trip Itinerary</span>
+        </button>
       </div>
     </div>
   );
@@ -166,6 +242,91 @@ export const CatalogSearchPage: React.FC = () => {
               No matching options found for "{searchTerm}". Try searching "Paragliding", "Museum", or "Tokyo".
             </div>
           )}
+        </div>
+      )}
+
+      {/* Activity Selection Modal */}
+      {selectedActivity && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl">
+            <h3 className="text-lg font-bold text-slate-900">Add to Trip Itinerary</h3>
+            <p className="text-xs text-slate-500 font-medium">
+              Assign <strong className="text-slate-900">{selectedActivity.name}</strong> (${selectedActivity.estimated_cost}) to your active trip.
+            </p>
+
+            {assignSuccessMessage ? (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-xl flex items-center space-x-2">
+                <Check className="w-4 h-4 text-emerald-600" />
+                <span>{assignSuccessMessage}</span>
+              </div>
+            ) : userTrips.length > 0 ? (
+              <form onSubmit={handleAssignSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Select Active Trip</label>
+                  <select
+                    value={selectedTripId || ''}
+                    onChange={(e) => handleTripChange(Number(e.target.value))}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                  >
+                    {userTrips.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.title} ({t.city_name || 'Destination'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Select Trip Stop / Section</label>
+                  {tripStops.length > 0 ? (
+                    <select
+                      value={selectedStopId || ''}
+                      onChange={(e) => setSelectedStopId(Number(e.target.value))}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                    >
+                      {tripStops.map((s, idx) => (
+                        <option key={s.id} value={s.id}>
+                          Section {idx + 1}: {s.city?.name || 'Stop'} (${s.stay_cost} stay)
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-xs text-rose-500 italic font-medium">
+                      No stops found in this trip. Please add a city stop to the trip first.
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedActivity(null)}
+                    className="px-4 py-2 bg-slate-100 text-slate-600 text-xs font-semibold rounded-xl"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={assignLoading || !selectedStopId}
+                    className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl shadow-sm disabled:opacity-50"
+                  >
+                    {assignLoading ? 'Adding...' : 'Confirm & Add to Trip'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-3 text-center py-4">
+                <p className="text-xs text-slate-500 italic">You don't have any active trips scheduled yet.</p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedActivity(null)}
+                  className="px-4 py-2 bg-slate-100 text-slate-600 text-xs font-semibold rounded-xl"
+                >
+                  Close
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
