@@ -62,7 +62,9 @@ def seed_database():
         activities_data = [
             {"id": 1, "city_id": 1, "name": "Eiffel Tower Summit & Seine Cruise", "category": "Sightseeing", "estimated_cost": 65.0, "duration_minutes": 180, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400"},
             {"id": 2, "city_id": 1, "name": "Louvre Museum Priority Entry", "category": "Culture", "estimated_cost": 40.0, "duration_minutes": 180, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400"},
-            {"id": 3, "city_id": 2, "name": "Senso-ji Temple & Asakusa Walk", "category": "Culture", "estimated_cost": 25.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400"}
+            {"id": 3, "city_id": 2, "name": "Senso-ji Temple & Asakusa Walk", "category": "Culture", "estimated_cost": 25.0, "duration_minutes": 120, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400"},
+            {"id": 4, "city_id": 2, "name": "Paragliding over Mount Fuji foothills", "category": "Adventure", "estimated_cost": 150.0, "duration_minutes": 240, "rating": 4.9, "image_url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400"},
+            {"id": 5, "city_id": 3, "name": "Colosseum & Ancient Forum Tour", "category": "Sightseeing", "estimated_cost": 50.0, "duration_minutes": 180, "rating": 4.8, "image_url": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400"}
         ]
 
         for act in activities_data:
@@ -136,7 +138,6 @@ def seed_database():
             db.add(t_completed)
             db.flush()
 
-        # Seed stops for European Summer Gateway 2026
         stop1 = db.query(TripStop).filter(TripStop.trip_id == t_upcoming.id, TripStop.city_id == 1).first()
         if not stop1:
             stop1 = TripStop(

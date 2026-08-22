@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from app.db.session import get_db
 from app.models.user import User
 from app.models.trip import Trip
+from app.models.trip_stop import TripStop
+from app.models.trip_activity import TripActivity
 from app.schemas.user import UserResponse
 from app.schemas.profile import ProfileUpdate, UserProfilePageResponse
-from app.api.trip_listing import build_trip_overview_card
+from app.api.trip_listing import build_trip_overview_card_eager
 from app.api.deps import get_current_user
 
 router = APIRouter(prefix="/profile", tags=["User Profile"])
@@ -15,8 +17,11 @@ def get_user_profile_page(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    user_trips = db.query(Trip).filter(Trip.user_id == current_user.id).order_by(Trip.created_at.desc()).all()
-    overview_cards = [build_trip_overview_card(t, db) for t in user_trips]
+    user_trips = db.query(Trip).options(
+        selectinload(Trip.stops).selectinload(TripStop.activities).selectinload(TripActivity.activity)
+    ).filter(Trip.user_id == current_user.id).order_by(Trip.created_at.desc()).all()
+    
+    overview_cards = [build_trip_overview_card_eager(t) for t in user_trips]
 
     preplanned = [c for c in overview_cards if c.status in ("upcoming", "ongoing", "draft")]
     previous = [c for c in overview_cards if c.status == "completed"]

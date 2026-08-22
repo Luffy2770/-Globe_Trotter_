@@ -1,11 +1,12 @@
 from datetime import date
 from typing import List, Optional, Union
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import or_
 from app.db.session import get_db
 from app.models.trip import Trip
 from app.models.trip_stop import TripStop
+from app.models.trip_activity import TripActivity
 from app.models.user import User
 from app.schemas.trip_listing import (
     TripOverviewCard,
@@ -27,14 +28,14 @@ def determine_trip_status(start_date: Optional[date], end_date: Optional[date]) 
     else:
         return "completed"
 
-def build_trip_overview_card(trip: Trip, db: Session) -> TripOverviewCard:
-    stops = db.query(TripStop).filter(TripStop.trip_id == trip.id).all()
+def build_trip_overview_card_eager(trip: Trip) -> TripOverviewCard:
+    stops = trip.stops or []
     stops_count = len(stops)
     
     stay_sum = sum(s.stay_cost for s in stops)
     act_sum = 0.0
     for s in stops:
-        for ta in s.activities:
+        for ta in (s.activities or []):
             if ta.cost_override is not None:
                 act_sum += ta.cost_override
             elif ta.activity and ta.activity.estimated_cost:
@@ -75,10 +76,13 @@ def get_user_trip_listing(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    query = db.query(Trip).filter(Trip.user_id == current_user.id)
+    # Eager loading with selectinload to solve N+1 query performance bottleneck completely
+    query = db.query(Trip).options(
+        selectinload(Trip.stops).selectinload(TripStop.activities).selectinload(TripActivity.activity)
+    ).filter(Trip.user_id == current_user.id)
 
     if q:
-        search_pattern = f"%{q}%"
+        search_pattern = f"%{q.strip()}%"
         query = query.filter(
             or_(
                 Trip.title.ilike(search_pattern),
@@ -99,7 +103,7 @@ def get_user_trip_listing(
         query = query.order_by(Trip.created_at.desc())
 
     trips = query.all()
-    overview_cards = [build_trip_overview_card(t, db) for t in trips]
+    overview_cards = [build_trip_overview_card_eager(t) for t in trips]
 
     if status_filter:
         overview_cards = [c for c in overview_cards if c.status.lower() == status_filter.lower()]
@@ -128,7 +132,10 @@ def get_single_trip_overview(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == current_user.id).first()
+    trip = db.query(Trip).options(
+        selectinload(Trip.stops).selectinload(TripStop.activities).selectinload(TripActivity.activity)
+    ).filter(Trip.id == trip_id, Trip.user_id == current_user.id).first()
+    
     if not trip:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
-    return build_trip_overview_card(trip, db)
+    return build_trip_overview_card_eager(trip)
