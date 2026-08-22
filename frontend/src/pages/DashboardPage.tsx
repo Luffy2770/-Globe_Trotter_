@@ -62,7 +62,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     <div
       key={trip.id}
       style={{ animationDelay: `${index * 0.08}s` }}
-      className="apple-card p-6 flex flex-col justify-between animate-fade-in group hover:shadow-lg transition"
+      className="apple-card p-6 flex flex-col justify-between animate-fade-in group hover:shadow-lg transition flex-shrink-0 w-80 sm:w-96"
     >
       <div>
         <div className="flex items-center justify-between mb-4">
@@ -203,15 +203,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       </div>
 
-      {/* 3. Top Regional Selections Section (Filtered by Continent) */}
+      {/* 3. Top Regional Selections Section (Single Horizontally Scrollable Row with ALL Destinations) */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
           <h2 className="text-base font-bold text-slate-900 flex items-center space-x-2">
             <Compass className="w-4 h-4 text-blue-600" />
-            <span>Top Regional Selections</span>
+            <span>Top Regional Selections ({filteredSelections.length} Destinations)</span>
           </h2>
 
-          {/* Continent Filters */}
+          {/* Continent Filter Tabs */}
           <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-none">
             <Globe className="w-3.5 h-3.5 text-slate-400 mr-1 flex-shrink-0" />
             {continents.map((cont) => (
@@ -231,18 +231,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
 
         {filteredSelections.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {filteredSelections.slice(0, 10).map((city: any, idx: number) => (
+          /* Single Horizontally Scrollable Row */
+          <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-300 snap-x">
+            {filteredSelections.map((city: any, idx: number) => (
               <div
                 key={city.id}
-                style={{ animationDelay: `${idx * 0.05}s` }}
-                className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs hover:shadow-lg hover:-translate-y-1 transition duration-300 cursor-pointer group animate-fade-in"
+                style={{ animationDelay: `${idx * 0.03}s` }}
+                className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs hover:shadow-lg hover:-translate-y-1 transition duration-300 cursor-pointer group animate-fade-in flex-shrink-0 w-48 snap-start"
               >
                 <div className="overflow-hidden rounded-xl mb-2.5">
                   <img
                     src={city.image_url}
                     alt={city.name}
-                    className="w-full h-28 object-cover group-hover:scale-110 transition duration-500 ease-out"
+                    className="w-full h-32 object-cover group-hover:scale-110 transition duration-500 ease-out"
                   />
                 </div>
                 <h4 className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition truncate">
@@ -259,12 +260,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         )}
       </div>
 
-      {/* 4. Previous Trips / User Trips Section */}
+      {/* 4. Previous Trips Section (Single Horizontally Scrollable Row) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200 pb-2">
           <h2 className="text-base font-bold text-slate-900 flex items-center space-x-2">
             <Calendar className="w-4 h-4 text-blue-600" />
-            <span>Previous Trips & Active Itineraries</span>
+            <span>Previous Trips</span>
           </h2>
           <span className="text-xs text-slate-400 font-medium">All recorded trips</span>
         </div>
@@ -274,14 +275,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             Loading previous trips...
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {(!statusFilter || statusFilter === 'ongoing') && tripsGrouped?.ongoing?.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
                   <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                   <span>Ongoing Trips</span>
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="flex space-x-4 overflow-x-auto pb-4 snap-x">
                   {tripsGrouped.ongoing.map(renderTripCard)}
                 </div>
               </div>
@@ -293,7 +294,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   <span className="w-2 h-2 rounded-full bg-amber-500" />
                   <span>Up-coming Trips</span>
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="flex space-x-4 overflow-x-auto pb-4 snap-x">
                   {tripsGrouped.upcoming.map(renderTripCard)}
                 </div>
               </div>
@@ -305,7 +306,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   <span className="w-2 h-2 rounded-full bg-slate-400" />
                   <span>Completed Trips</span>
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="flex space-x-4 overflow-x-auto pb-4 snap-x">
                   {tripsGrouped.completed.map(renderTripCard)}
                 </div>
               </div>
