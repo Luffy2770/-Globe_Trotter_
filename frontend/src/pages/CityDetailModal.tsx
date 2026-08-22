@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { activitiesApi } from '../services/api';
-import { X, Star, MapPin, Compass, Plus, Clock, Tag } from 'lucide-react';
+import { X, Star, MapPin, Compass, Plus, Clock, Tag, DollarSign, Sun, Award } from 'lucide-react';
 
 interface CityDetailModalProps {
   city: any | null;
   onClose: () => void;
-  onOpenCreateModal: () => void;
+  onPlanTripForCity: (cityId: number) => void;
 }
 
 export const CityDetailModal: React.FC<CityDetailModalProps> = ({
   city,
   onClose,
-  onOpenCreateModal,
+  onPlanTripForCity,
 }) => {
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -29,12 +29,16 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
 
   if (!city) return null;
 
+  const avgDailyCost = Math.round((city.cost_index || 2.0) * 75);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-md animate-fade-in overflow-y-auto font-sans">
-      <div className="bg-white border border-stone-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative my-8 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-950/75 backdrop-blur-md animate-fade-in overflow-y-auto font-sans">
+      <div className="bg-white border border-stone-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative my-auto overflow-hidden">
+        {/* Single Top-Right Close Button */}
         <button
           onClick={onClose}
-          className="absolute right-6 top-6 z-10 p-2 bg-white/80 hover:bg-white text-stone-700 rounded-full shadow-sm backdrop-blur-md transition"
+          className="absolute right-6 top-6 z-20 p-2 bg-white/90 hover:bg-white text-stone-700 rounded-full shadow-md backdrop-blur-md transition hover:scale-105 active:scale-95"
+          title="Close Window"
         >
           <X className="w-5 h-5" />
         </button>
@@ -46,14 +50,14 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
             alt={city.name}
             className="w-full h-full object-cover object-center opacity-85"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-900/30 to-transparent p-6 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/95 via-stone-900/30 to-transparent p-6 flex flex-col justify-end">
             <div className="flex items-center space-x-2 mb-1">
               <span className="px-3 py-1 bg-emerald-800/90 text-white text-[11px] font-bold rounded-full uppercase tracking-wider backdrop-blur-xs">
                 {city.region}
               </span>
               <span className="px-3 py-1 bg-white/20 text-white text-[11px] font-bold rounded-full backdrop-blur-xs flex items-center">
                 <Star className="w-3 h-3 fill-amber-400 text-amber-400 mr-1" />
-                {city.popularity_rating} Rating
+                {city.popularity_rating} / 5.0 Rating
               </span>
             </div>
             <h2
@@ -64,13 +68,37 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
             </h2>
             <p className="text-xs sm:text-sm text-stone-200 font-medium flex items-center mt-1">
               <MapPin className="w-4 h-4 text-emerald-400 mr-1.5" />
-              {city.country} • Cost Index: ${city.cost_index}x
+              {city.country} • Cost Index: {city.cost_index}x
             </p>
           </div>
         </div>
 
+        {/* Rich Travel Metrics Bar (Avg Cost, Best Season, Rating) */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3 text-center space-y-1">
+            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block flex items-center justify-center">
+              <DollarSign className="w-3 h-3 text-emerald-700 mr-0.5" /> Avg Daily Spend
+            </span>
+            <span className="text-sm sm:text-base font-extrabold text-stone-900">~${avgDailyCost} / day</span>
+          </div>
+
+          <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3 text-center space-y-1">
+            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block flex items-center justify-center">
+              <Sun className="w-3 h-3 text-amber-500 mr-0.5" /> Best Travel Season
+            </span>
+            <span className="text-xs sm:text-xs font-bold text-stone-800">Apr - Oct (Spring/Fall)</span>
+          </div>
+
+          <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3 text-center space-y-1">
+            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block flex items-center justify-center">
+              <Award className="w-3 h-3 text-indigo-600 mr-0.5" /> Global Popularity
+            </span>
+            <span className="text-xs sm:text-xs font-bold text-stone-800">Top Tier Destination</span>
+          </div>
+        </div>
+
         {/* City Information & Description */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider flex items-center">
             <Compass className="w-4 h-4 text-emerald-800 mr-1.5" />
             <span>About {city.name}</span>
@@ -81,7 +109,7 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
           </p>
         </div>
 
-        {/* Suggested Activities & Places to Visit */}
+        {/* Top Recommended Activities in City */}
         <div className="space-y-3">
           <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider flex items-center">
             <Tag className="w-4 h-4 text-emerald-700 mr-1.5" />
@@ -93,11 +121,11 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
               Loading recommended places...
             </div>
           ) : activities.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1 scrollbar-thin">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
               {activities.map((act) => (
                 <div
                   key={act.id}
-                  className="p-3.5 bg-white border border-stone-200 rounded-2xl flex items-center justify-between hover:border-emerald-300 transition"
+                  className="p-3.5 bg-white border border-stone-200 rounded-2xl flex items-center justify-between hover:border-emerald-300 transition shadow-2xs"
                 >
                   <div className="space-y-0.5">
                     <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-800 rounded-md">
@@ -114,27 +142,20 @@ export const CityDetailModal: React.FC<CityDetailModalProps> = ({
             </div>
           ) : (
             <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs text-stone-400 italic">
-              No specific activities listed yet. Click "Plan a Trip" to customize itinerary activities.
+              No specific activities listed yet. Click "Plan a Trip to {city.name}" to configure itinerary activities.
             </div>
           )}
         </div>
 
-        {/* Modal Action Buttons */}
-        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-stone-100">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-semibold rounded-xl transition"
-          >
-            Close
-          </button>
+        {/* Bottom CTA Action Bar (Single Action Button: Plan a Trip to City) */}
+        <div className="pt-4 border-t border-stone-100 flex justify-end">
           <button
             type="button"
             onClick={() => {
               onClose();
-              onOpenCreateModal();
+              onPlanTripForCity(city.id);
             }}
-            className="px-6 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center space-x-1.5 shadow-md transition active:scale-[0.98]"
+            className="w-full sm:w-auto px-8 py-3 bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold rounded-2xl flex items-center justify-center space-x-2 shadow-md transition active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
             <span>Plan a Trip to {city.name}</span>

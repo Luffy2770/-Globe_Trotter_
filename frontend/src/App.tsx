@@ -17,6 +17,7 @@ export function App() {
   const [activeTab, setActiveTab] = useState<string>('explore');
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [modalCityId, setModalCityId] = useState<number | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -51,28 +52,33 @@ export function App() {
     setActiveTab('budget');
   };
 
+  const handleOpenCreateModalWithCity = (cityId?: number) => {
+    setModalCityId(cityId || null);
+    setIsCreateModalOpen(true);
+  };
+
   if (!user) {
     return <AuthPage onLoginSuccess={handleLoginSuccess} />;
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+    <div className="min-h-screen bg-[#f6f7f5] text-slate-900 font-sans">
       <Navbar
         user={user}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onLogout={handleLogout}
-        onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        onOpenCreateModal={() => handleOpenCreateModalWithCity()}
       />
 
       <main className="pb-16">
         {activeTab === 'explore' && (
-          <ExploreCitiesPage onOpenCreateModal={() => setIsCreateModalOpen(true)} />
+          <ExploreCitiesPage onOpenCreateModalWithCity={handleOpenCreateModalWithCity} />
         )}
 
         {activeTab === 'trips' && (
           <MyTripsPage
-            onOpenCreateModal={() => setIsCreateModalOpen(true)}
+            onOpenCreateModal={() => handleOpenCreateModalWithCity()}
             onSelectTripForItinerary={handleSelectTripForItinerary}
             onSelectTripForBudget={handleSelectTripForBudget}
           />
@@ -97,8 +103,12 @@ export function App() {
 
       <CreateTripModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setModalCityId(null);
+        }}
         onTripCreated={() => setActiveTab('trips')}
+        initialCityId={modalCityId}
       />
     </div>
   );
